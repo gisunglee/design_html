@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환경공단 검토자 - 전체 현황 모니터링</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #134e4a 0%, #047857 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px; /* 20px → 15px */
+        }
+        
+        /* 헤더 - 검토자 정체성 */
+        .monitor-header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px; /* 25px → 20px */
+            margin-bottom: 20px; /* 25px → 20px */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        /* 헤더 레이아웃 수정 */
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 12px 20px;
+            background: #f0fdfa;
+            border: 2px solid #134e4a;
+            border-radius: 10px;
+        }
+        
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .year-label {
+            font-weight: bold;
+            color: #134e4a;
+            font-size: 15px;
+        }
+        
+        .year-dropdown {
+            padding: 8px 15px;
+            border: 2px solid #134e4a;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #134e4a;
+            background: white;
+            min-width: 100px;
+            font-size: 14px;
+        }
+        
+        .round-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .round-label {
+            font-weight: bold;
+            color: #134e4a;
+            font-size: 15px;
+        }
+        
+        .round-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .round-btn {
+            padding: 8px 15px;
+            border: 2px solid #134e4a;
+            border-radius: 8px;
+            background: white;
+            color: #134e4a;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 50px;
+        }
+        
+        .round-btn.active {
+            background: #134e4a;
+            color: white;
+        }
+        
+        .round-btn:hover {
+            background: #0f3730;
+            color: white;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .reviewer-badge {
+            background: #134e4a;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .urgent-alert {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: pulse-alert 2s infinite;
+        }
+        
+        @keyframes pulse-alert {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* 대시보드 그리드 - 비율 조정 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr; /* 2fr 1fr → 1.2fr 1fr로 변경 */
+            gap: 20px; /* 25px → 20px */
+            margin-bottom: 20px; /* 25px → 20px */
+        }
+        
+        /* 카드 스타일 */
+        .card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px; /* 25px → 20px */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .card-title {
+            font-size: 16px; /* 18px → 16px */
+            font-weight: bold;
+            color: #134e4a;
+            margin-bottom: 15px; /* 20px → 15px */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* 통계 대시보드 */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* 4, 1fr → 5, 1fr로 변경 */
+            gap: 15px; /* 20px → 15px */
+            margin-bottom: 20px; /* 25px → 20px */
+        }
+        
+        /* 통계 글씨 크기 조정 */
+        .stat-number {
+            font-size: 28px; /* 24px → 28px */
+            font-weight: bold;
+            color: #134e4a;
+            margin-bottom: 8px; /* 6px → 8px */
+        }
+        
+        .stat-number.alert {
+            color: #d97706;
+        }
+        
+        .stat-label {
+            font-size: 14px; /* 12px → 14px */
+            color: #666;
+            font-weight: 600; /* 500 → 600 */
+        }
+        
+        .stat-detail {
+            font-size: 12px; /* 10px → 12px */
+            color: #888;
+            margin-top: 5px; /* 3px → 5px */
+            font-weight: 500;
+        }
+        
+        .stat-item {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px; /* 20px → 15px */
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            border-color: #134e4a;
+            background: #f0fdfa;
+        }
+        
+        .stat-item.alert {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        /* 부처별 현황 테이블 */
+        .ministry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .ministry-table th {
+            background: #f8fafc;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+        }
+        
+        .ministry-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+        
+        .ministry-table tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .ministry-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 11px;
+            font-weight: 600;
+            color: #374151;
+            min-width: 35px;
+        }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .status-badge.waiting { background: #fee2e2; color: #991b1b; }
+        .status-badge.writing { background: #fef3c7; color: #92400e; }
+        .status-badge.submitted { background: #d1fae5; color: #065f46; }
+        .status-badge.reviewing { background: #dbeafe; color: #1e40af; }
+        .status-badge.completed { background: #e0e7ff; color: #3730a3; }
+        
+        .action-btn-sm {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+        
+        .action-btn-sm.primary { background: #134e4a; color: white; }
+        .action-btn-sm.primary:hover { background: #0f3730; }
+        
+        .action-btn-sm.warning { background: #f59e0b; color: white; }
+        .action-btn-sm.warning:hover { background: #d97706; }
+        
+        .action-btn-sm.success { background: #10b981; color: white; }
+        .action-btn-sm.success:hover { background: #059669; }
+        
+        /* 검토 대상 세부사업 */
+        .review-projects {
+            max-height: calc(100vh - 380px); /* 400px → 380px로 조정하여 더 많은 공간 확보 */
+            overflow-y: auto;
+            padding-right: 5px; /* 스크롤바 공간 확보 */
+        }
+        
+        /* 스크롤바 스타일링 */
+        .review-projects::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .review-projects::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .review-projects::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .review-projects::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .project-item {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px; /* 15px → 12px */
+            margin-bottom: 10px; /* 12px → 10px */
+            transition: all 0.3s ease;
+        }
+        
+        .project-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .project-item.urgent {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .project-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .project-meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .project-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .priority-badge.high { background: #fecaca; color: #991b1b; }
+        .priority-badge.medium { background: #fed7aa; color: #9a3412; }
+        .priority-badge.low { background: #d1fae5; color: #065f46; }
+        
+        .project-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        
+        /* 액션 버튼 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #134e4a 0%, #047857 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(19, 78, 74, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(19, 78, 74, 0.4);
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        /* 필터 및 검색 */
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .filter-select {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .search-input {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 200px;
+        }
+        
+        /* 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #374151;
+        }
+        
+        .feedback-form {
+            margin-bottom: 20px;
+        }
+        
+        .feedback-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .round-buttons {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* 선택된 부처 행 스타일 */
+        .selected-row {
+            background: #eff6ff !important;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .selected-row:hover {
+            background: #dbeafe !important;
+        }
+
+        /* 통계 그룹 스타일 추가 */
+        /* 통계 그룹 스타일 - 크기 조정 */
+        .stat-group {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 2px solid #0ea5e9;
+        }
+        
+        .stat-detail-group {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 6px; /* 8px → 6px */
+        }
+        
+        /* 보완요청, 정상완료 사이즈 조정 */
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 6px 10px; /* 3px 6px → 6px 10px */
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 6px;
+            min-width: 60px; /* 최소 너비 설정 */
+        }
+        
+        /* 보완요청, 정상완료 글씨 크기도 조정 */
+        .detail-number {
+            font-size: 20px; /* 18px → 20px */
+            font-weight: bold;
+            margin-bottom: 3px; /* 2px → 3px */
+        }
+        
+        .detail-text {
+            font-size: 12px; /* 11px → 12px */
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        /* 검토 대상 세부사업 액션 개선 */
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .reviewer-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .reviewer-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .reviewer-dropdown {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 12px;
+            background: white;
+            min-width: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 헤더 - 레이아웃 수정 -->
+            <div class="monitor-header">
+                <div class="header-content">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <h1>🔍 환경공단 검토 모니터링 시스템</h1>
+                            <p>전체 부처별 제출현황 실시간 모니터링 및 검토 진행 관리</p>
+                        </div>
+                        <div class="header-right">
+                            <div class="reviewer-badge">전문 검토자</div>
+                            <div v-if="urgentCount > 0" class="urgent-alert">
+                                ⚠️ 긴급 {{ urgentCount }}건
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 연도/차수 선택을 별도 행으로 분리 -->
+                    <div class="header-controls">
+                        <!-- 회계연도 선택 -->
+                        <div class="year-selector">
+                            <span class="year-label">📅 회계연도:</span>
+                            <select v-model="selectedYear" @change="loadYearData" class="year-dropdown">
+                                <option value="2024">2024년</option>
+                                <option value="2023">2023년</option>
+                                <option value="2022">2022년</option>
+                            </select>
+                        </div>
+                        
+                        <!-- 차수 선택 -->
+                        <div class="round-selector">
+                            <span class="round-label">🔄 차수:</span>
+                            <div class="round-buttons">
+                                <button 
+                                    v-for="round in [1, 2, 3, 4]" 
+                                    :key="round"
+                                    :class="['round-btn', { active: selectedRound === round }]"
+                                    @click="selectRound(round)"
+                                >
+                                    {{ round }}차
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 통계 대시보드 - 글씨 크기 개선 -->
+            <div class="stats-overview">
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.totalProjects }}</div>
+                    <div class="stat-label">총 세부사업</div>
+                    <div class="stat-detail">{{ selectedYear }}년 {{ selectedRound }}차</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.submittedProjects }}</div>
+                    <div class="stat-label">제출완료</div>
+                    <div class="stat-detail">검토 대기중</div>
+                </div>
+                
+                <div class="stat-item">
+                    <div class="stat-number">{{ stats.reviewingProjects }}</div>
+                    <div class="stat-label">검토 진행중</div>
+                    <div class="stat-detail">{{ Math.round((stats.reviewingProjects/stats.totalProjects)*100) }}%</div>
+                </div>
+                
+                <!-- 검토 완료 그룹 -->
+                <div class="stat-item stat-group">
+                    <div class="stat-number">{{ stats.completedWithRevision + stats.completedApproved }}</div>
+                    <div class="stat-label">검토 완료</div>
+                    <div class="stat-detail-group">
+                        <div class="detail-item">
+                            <span class="detail-number" style="color: #f59e0b;">{{ stats.completedWithRevision }}</span>
+                            <span class="detail-text">보완요청</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-number" style="color: #10b981;">{{ stats.completedApproved }}</span>
+                            <span class="detail-text">정상완료</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-item" :class="{ alert: stats.unsubmittedMinistries > 0 }">
+                    <div class="stat-number" :class="{ alert: stats.unsubmittedMinistries > 0 }">
+                        {{ stats.unsubmittedMinistries }}
+                    </div>
+                    <div class="stat-label">미제출 부처 수</div>
+                    <div class="stat-detail">독촉 필요</div>
+                </div>
+            </div>
+            
+            <!-- 메인 대시보드 -->
+            <div class="dashboard-grid">
+                <!-- 부처별 현황 -->
+                <div class="card">
+                    <div class="card-title">
+                        🏢 부처별 제출 현황
+                        <div class="card-actions">
+                            <button @click="refreshData" class="btn btn-primary">
+                                🔄 새로고침
+                            </button>
+                            <button @click="sendBulkReminder" class="btn btn-warning">
+                                📢 일괄 독촉
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 필터 섹션 -->
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <span class="filter-label">상태:</span>
+                            <select v-model="filterStatus" class="filter-select">
+                                <option value="">전체</option>
+                                <option value="waiting">대기중</option>
+                                <option value="writing">작성중</option>
+                                <option value="submitted">제출완료</option>
+                                <option value="reviewing">검토중</option>
+                                <option value="completed">완료</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <span class="filter-label">차수:</span>
+                            <select v-model="filterRound" class="filter-select">
+                                <option value="">전체</option>
+                                <option value="1">1차</option>
+                                <option value="2">2차</option>
+                                <option value="3">3차</option>
+                                <option value="4">4차</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <span class="filter-label">검색:</span>
+                            <input 
+                                v-model="searchTerm" 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="부처명 검색..."
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 부처별 현황 테이블 -->
+                    <table class="ministry-table">
+                        <thead>
+                            <tr>
+                                <th>부처명</th>
+                                <th>진행률</th>
+                                <th>제출상태</th>
+                                <th>검토상태</th>
+                                <th>마감일</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="ministry in filteredMinistries" :key="ministry.id"
+                                @click="selectMinistry(ministry)"
+                                :class="{ 'selected-row': selectedMinistry?.id === ministry.id }"
+                                style="cursor: pointer;">
+                                <td>
+                                    <div class="ministry-name">{{ ministry.name }}</div>
+                                    <div style="font-size: 11px; color: #888;">
+                                        {{ ministry.totalProjects }}개 사업 ({{ ministry.submittedProjects }}개 제출)
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="progress-container">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" :style="{ width: ministry.progress + '%' }"></div>
+                                        </div>
+                                        <span class="progress-text">{{ ministry.progress }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge" :class="ministry.submitStatus">
+                                        {{ getSubmitStatusText(ministry.submitStatus) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-badge" :class="ministry.reviewStatus">
+                                        {{ getReviewStatusText(ministry.reviewStatus) }}
+                                    </span>
+                                </td>
+                                <td style="font-size: 12px;">
+                                    {{ formatDate(ministry.deadline) }}
+                                    <div v-if="isOverdue(ministry.deadline)" style="color: #dc2626; font-weight: 600;">
+                                        {{ getDaysOverdue(ministry.deadline) }}일 초과
+                                    </div>
+                                </td>
+                                <td @click.stop>
+                                    <button @click="viewMinistryDetail(ministry)" class="action-btn-sm primary">
+                                        📊 상세
+                                    </button>
+                                    <button @click="sendReminder(ministry)" class="action-btn-sm warning">
+                                        📢 독촉
+                                    </button>
+                                    <button 
+                                        @click="startReview(ministry)" 
+                                        class="action-btn-sm success"
+                                        :disabled="ministry.submitStatus !== 'submitted'"
+                                    >
+                                        🔍 검토
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 검토 대상 세부사업 -->
+                <div class="card">
+                    <div class="card-title">
+                        📋 검토 대상 세부사업
+                        <div class="card-actions">
+                            <!-- 담당자 선택 추가 -->
+                            <div class="reviewer-selector">
+                                <span class="reviewer-label">👤 담당자:</span>
+                                <select v-model="selectedReviewer" @change="filterByReviewer" class="reviewer-dropdown">
+                                    <option value="">전체 담당자</option>
+                                    <option value="김검토">김검토</option>
+                                    <option value="이검토">이검토</option>
+                                    <option value="박검토">박검토</option>
+                                    <option value="최검토">최검토</option>
+                                </select>
+                            </div>
+                            
+                            <button 
+                                :class="['btn', viewType === 'all' ? 'btn-primary' : 'btn-secondary']"
+                                @click="viewType = 'all'"
+                                style="padding: 6px 12px; font-size: 12px;"
+                            >
+                                전체 사업
+                            </button>
+                            <button 
+                                :class="['btn', viewType === 'mine' ? 'btn-primary' : 'btn-secondary']"
+                                @click="viewType = 'mine'"
+                                style="padding: 6px 12px; font-size: 12px;"
+                            >
+                                내 담당 사업
+                            </button>
+                            <select v-model="priorityFilter" class="filter-select">
+                                <option value="">전체 우선순위</option>
+                                <option value="high">높음</option>
+                                <option value="medium">중간</option>
+                                <option value="low">낮음</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- 선택된 부처 정보 표시 -->
+                    <div v-if="selectedMinistry" style="background: #f0f9ff; padding: 10px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #3b82f6;">
+                        <strong style="color: #1e40af;">{{ selectedMinistry.name }}</strong> 세부사업 목록
+                        <span style="font-size: 12px; color: #6b7280; margin-left: 10px;">
+                            ({{ getMinistryProjects(selectedMinistry.id).length }}개 사업)
+                        </span>
+                    </div>
+                    
+                    <div class="review-projects">
+                        <div 
+                            v-for="project in currentDisplayProjects" 
+                            :key="project.id"
+                            class="project-item"
+                            :class="{ urgent: project.priority === 'high' || isOverdue(project.deadline) }"
+                        >
+                            <div class="project-header">
+                                <div>
+                                    <div class="project-title">{{ project.name }}</div>
+                                    <div class="project-meta">
+                                        {{ project.ministry }} | {{ project.manager }} | {{ project.budget }}억원
+                                        <span v-if="viewType === 'mine'" style="background: #10b981; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; margin-left: 8px;">
+                                            내 담당
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="project-status">
+                                    <span class="priority-badge" :class="project.priority">
+                                        {{ getPriorityText(project.priority) }}
+                                    </span>
+                                    <span class="status-badge" :class="project.status">
+                                        {{ getProjectStatusText(project.status) }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div v-if="project.issues && project.issues.length > 0" style="margin: 8px 0;">
+                                <div style="font-size: 12px; color: #dc2626; font-weight: 600;">
+                                    ⚠️ 검토 시 주의사항:
+                                </div>
+                                <ul style="font-size: 11px; color: #7f1d1d; margin-left: 15px;">
+                                    <li v-for="issue in project.issues" :key="issue">{{ issue }}</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="project-actions">
+                                <button @click="viewProjectDetail(project)" class="action-btn-sm primary">
+                                    📄 상세보기
+                                </button>
+                                <button @click="startProjectReview(project)" class="action-btn-sm success">
+                                    🔍 검토시작
+                                </button>
+                                <button @click="writeFeedback(project)" class="action-btn-sm warning">
+                                    📝 의견작성
+                                </button>
+                                <button 
+                                    v-if="project.status === 'completed'"
+                                    @click="approveProject(project)" 
+                                    class="action-btn-sm"
+                                    style="background: #8b5cf6; color: white;"
+                                >
+                                    ✅ 승인
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 표시할 사업이 없을 때 -->
+                        <div v-if="currentDisplayProjects.length === 0" style="text-align: center; padding: 40px; color: #6b7280;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📋</div>
+                            <h3 style="margin-bottom: 10px;">
+                                {{ viewType === 'mine' ? '내 담당 사업이 없습니다' : '검토 대상 사업이 없습니다' }}
+                            </h3>
+                            <p>
+                                {{ viewType === 'mine' ? '담당자를 배정받거나 다른 검토자가 담당 중입니다.' : '좌측에서 부처를 선택하면 해당 부처의 세부사업이 표시됩니다.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 액션 패널 -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: #134e4a; margin-bottom: 8px;">🎯 일괄 작업</h3>
+                        <p style="font-size: 13px; color: #666;">선택된 항목에 대해 일괄 작업을 수행할 수 있습니다.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button @click="bulkApprove" class="btn btn-success">
+                            ✅ 일괄 승인
+                        </button>
+                        <button @click="bulkFeedback" class="btn btn-warning">
+                            📝 일괄 피드백
+                        </button>
+                        <button @click="generateReport" class="btn btn-primary">
+                            📊 검토보고서 생성
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 정보 섹션 - 공지사항, 자료실 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-top: 25px;">
+                <!-- 공지사항 -->
+                <div class="card">
+                    <h3 style="color: #134e4a; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+                        📢 공지사항
+                    </h3>
+                    <ul style="list-style: none;">
+                        <li v-for="notice in notices" :key="notice.id" style="padding: 12px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @click="viewNotice(notice)">
+                            <div style="flex: 1;">
+                                <div style="color: #374151; font-weight: 500; margin-bottom: 3px;">{{ notice.title }}</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280;">
+                                    <span>{{ notice.date }}</span>
+                                    <div>
+                                        <span v-if="notice.important" style="background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-left: 8px;">중요</span>
+                                        <span v-else style="background: #10b981; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; margin-left: 8px;">일반</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn" style="background: #6b7280; color: white; padding: 8px 16px;" @click="viewAllNotices()">
+                            공지사항 전체보기
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 자료실 -->
+                <div class="card">
+                    <h3 style="color: #134e4a; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">
+                        📚 자료실
+                    </h3>
+                    <ul style="list-style: none;">
+                        <li v-for="resource in resources" :key="resource.id" style="padding: 12px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" @click="downloadResource(resource)">
+                            <div style="flex: 1;">
+                                <div style="color: #374151; font-weight: 500; margin-bottom: 3px;">{{ resource.title }}</div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #6b7280;">
+                                    <span>{{ resource.date }}</span>
+                                    <span style="background: #3b82f6; color: white; padding: 2px 6px; border-radius: 8px; font-size: 10px; font-weight: bold;">{{ resource.type }}</span>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <button class="btn" style="background: #6b7280; color: white; padding: 8px 16px;" @click="viewAllResources()">
+                            자료실 전체보기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 피드백 작성 모달 -->
+        <div v-if="showFeedbackModal" class="modal-overlay" @click="closeFeedbackModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    📝 검토 의견 작성: {{ selectedProject?.name }}
+                </div>
+                
+                <div class="feedback-form">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">검토 결과</label>
+                    <select v-model="feedbackData.result" style="width: 100%; padding: 8px; margin-bottom: 15px; border-radius: 6px;">
+                        <option value="approve">승인</option>
+                        <option value="revision">수정 필요</option>
+                        <option value="reject">반려</option>
+                    </select>
+                    
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">상세 의견</label>
+                    <textarea 
+                        v-model="feedbackData.comment"
+                        class="feedback-textarea"
+                        placeholder="구체적인 검토 의견을 작성해주세요..."
+                    ></textarea>
+                    
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">수정 요청 사항 (수정 필요시)</label>
+                    <textarea 
+                        v-model="feedbackData.requirements"
+                        class="feedback-textarea"
+                        placeholder="구체적인 수정 요청 사항을 작성해주세요..."
+                        style="min-height: 80px;"
+                    ></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button @click="submitFeedback" class="btn btn-primary">
+                        📤 의견 전송
+                    </button>
+                    <button @click="closeFeedbackModal" class="btn" style="background: #6b7280; color: white;">
+                        ❌ 취소
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 새로운 상태 변수들
+                    selectedYear: '2024',
+                    selectedRound: 1,
+                    selectedReviewer: '',
+                    
+                    // 통계 데이터
+                    stats: {
+                        totalProjects: 180,
+                        submittedProjects: 142,
+                        reviewingProjects: 45,
+                        completedWithRevision: 38,
+                        completedApproved: 59,
+                        unsubmittedMinistries: 2
+                    },
+                    
+                    // 긴급 건수
+                    urgentCount: 8,
+                    
+                    // 필터링
+                    filterStatus: '',
+                    filterRound: '',
+                    searchTerm: '',
+                    priorityFilter: '',
+                    
+                    // 기존 상태 변수들
+                    selectedMinistry: null,
+                    viewType: 'all',
+                    currentReviewer: '김검토',
+                    
+                    // 부처별 현황 - 확장
+                    ministries: [
+                        {
+                            id: 1,
+                            name: '환경부',
+                            totalProjects: 28,
+                            submittedProjects: 25,
+                            progress: 89,
+                            submitStatus: 'submitted',
+                            reviewStatus: 'reviewing',
+                            deadline: '2024-12-25',
+                            currentRound: 2
+                        },
+                        {
+                            id: 2,
+                            name: '산업통상자원부',
+                            totalProjects: 35,
+                            submittedProjects: 32,
+                            progress: 91,
+                            submitStatus: 'submitted',
+                            reviewStatus: 'completed',
+                            deadline: '2024-12-25',
+                            currentRound: 2
+                        },
+                        {
+                            id: 3,
+                            name: '국토교통부',
+                            totalProjects: 22,
+                            submittedProjects: 18,
+                            progress: 82,
+                            submitStatus: 'writing',
+                            reviewStatus: 'waiting',
+                            deadline: '2024-12-25',
+                            currentRound: 2
+                        },
+                        {
+                            id: 4,
+                            name: '농림축산식품부',
+                            totalProjects: 18,
+                            submittedProjects: 15,
+                            progress: 83,
+                            submitStatus: 'writing',
+                            reviewStatus: 'waiting',
+                            deadline: '2024-12-27',
+                            currentRound: 2
+                        },
+                        {
+                            id: 5,
+                            name: '과학기술정보통신부',
+                            totalProjects: 15,
+                            submittedProjects: 12,
+                            progress: 80,
+                            submitStatus: 'submitted',
+                            reviewStatus: 'reviewing',
+                            deadline: '2024-12-26',
+                            currentRound: 2
+                        },
+                        {
+                            id: 6,
+                            name: '해양수산부',
+                            totalProjects: 12,
+                            submittedProjects: 10,
+                            progress: 83,
+                            submitStatus: 'submitted',
+                            reviewStatus: 'completed',
+                            deadline: '2024-12-25',
+                            currentRound: 2
+                        },
+                        {
+                            id: 7,
+                            name: '중소벤처기업부',
+                            totalProjects: 8,
+                            submittedProjects: 6,
+                            progress: 75,
+                            submitStatus: 'writing',
+                            reviewStatus: 'waiting',
+                            deadline: '2024-12-28',
+                            currentRound: 2
+                        },
+                        {
+                            id: 8,
+                            name: '문화체육관광부',
+                            totalProjects: 6,
+                            submittedProjects: 4,
+                            progress: 67,
+                            submitStatus: 'writing',
+                            reviewStatus: 'waiting',
+                            deadline: '2024-12-29',
+                            currentRound: 2
+                        }
+                    ],
+                    
+                    // 검토 대상 세부사업 - 대폭 확장
+                    projects: [
+                        // 환경부 (8개)
+                        {
+                            id: 1,
+                            name: '온실가스 배출권거래제 운영',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '김환경',
+                            budget: 150,
+                            priority: 'high',
+                            status: 'reviewing',
+                            deadline: '2024-12-23',
+                            issues: ['예산 산정 근거 보완 필요', 'GWP 값 재검토 요청'],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 2,
+                            name: '친환경차 보급 확산',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '이친환',
+                            budget: 280,
+                            priority: 'high',
+                            status: 'submitted',
+                            deadline: '2024-12-25',
+                            issues: ['감축효과 산정방법 명확화 필요'],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 3,
+                            name: '폐기물 에너지화 시설 확충',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '박폐기',
+                            budget: 420,
+                            priority: 'medium',
+                            status: 'completed',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 4,
+                            name: '생태계 기반 탄소흡수원 조성',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '최생태',
+                            budget: 180,
+                            priority: 'medium',
+                            status: 'reviewing',
+                            deadline: '2024-12-25',
+                            issues: ['탄소흡수량 계산 방법론 검토 필요'],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 5,
+                            name: '대기오염물질 저감 장치 보급',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '정대기',
+                            budget: 230,
+                            priority: 'low',
+                            status: 'submitted',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 6,
+                            name: '수질개선 친환경 기술 지원',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '한수질',
+                            budget: 160,
+                            priority: 'low',
+                            status: 'completed',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 7,
+                            name: '환경교육 및 인식개선 사업',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '강교육',
+                            budget: 85,
+                            priority: 'low',
+                            status: 'reviewing',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 8,
+                            name: '미세먼지 저감 기술 개발',
+                            ministry: '환경부',
+                            ministryId: 1,
+                            manager: '윤미세',
+                            budget: 320,
+                            priority: 'high',
+                            status: 'submitted',
+                            deadline: '2024-12-25',
+                            issues: ['기술 검증 자료 보완 필요'],
+                            reviewer: '김검토'
+                        },
+                        
+                        // 산업통상자원부 (7개)
+                        {
+                            id: 9,
+                            name: '산업단지 에너지효율화',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '박산업',
+                            budget: 320,
+                            priority: 'medium',
+                            status: 'completed',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 10,
+                            name: '신재생에너지 보급 확대',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '김재생',
+                            budget: 580,
+                            priority: 'high',
+                            status: 'reviewing',
+                            deadline: '2024-12-25',
+                            issues: ['발전량 예측치 검증 필요'],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 11,
+                            name: '스마트공장 보급 지원',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '이스마트',
+                            budget: 450,
+                            priority: 'medium',
+                            status: 'completed',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 12,
+                            name: '에너지 저장 시스템 구축',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '최저장',
+                            budget: 380,
+                            priority: 'high',
+                            status: 'submitted',
+                            deadline: '2024-12-25',
+                            issues: ['시스템 효율성 근거 보완'],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 13,
+                            name: '탄소중립 기술 R&D 지원',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '정연구',
+                            budget: 620,
+                            priority: 'high',
+                            status: 'reviewing',
+                            deadline: '2024-12-25',
+                            issues: ['기술 상용화 계획 구체화 필요'],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 14,
+                            name: '중소기업 녹색전환 지원',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '한중소',
+                            budget: 280,
+                            priority: 'medium',
+                            status: 'completed',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 15,
+                            name: '해외 탄소중립 기술 협력',
+                            ministry: '산업통상자원부',
+                            ministryId: 2,
+                            manager: '류해외',
+                            budget: 150,
+                            priority: 'low',
+                            status: 'submitted',
+                            deadline: '2024-12-25',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        
+                        // 국토교통부 (6개)
+                        {
+                            id: 16,
+                            name: '친환경 대중교통 확대',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '최교통',
+                            budget: 450,
+                            priority: 'medium',
+                            status: 'submitted',
+                            deadline: '2024-12-26',
+                            issues: ['수송분야 감축수단 세부화 필요'],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 17,
+                            name: '그린빌딩 인증 확산',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '임그린',
+                            budget: 320,
+                            priority: 'medium',
+                            status: 'reviewing',
+                            deadline: '2024-12-26',
+                            issues: ['인증 효과 정량화 보완'],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 18,
+                            name: '스마트시티 인프라 구축',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '김스마트',
+                            budget: 680,
+                            priority: 'high',
+                            status: 'submitted',
+                            deadline: '2024-12-26',
+                            issues: [],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 19,
+                            name: '도로교통 효율화 시스템',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '박도로',
+                            budget: 380,
+                            priority: 'medium',
+                            status: 'reviewing',
+                            deadline: '2024-12-26',
+                            issues: ['교통량 감소 효과 검증 필요'],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 20,
+                            name: '친환경 항공연료 보급',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '조항공',
+                            budget: 220,
+                            priority: 'low',
+                            status: 'submitted',
+                            deadline: '2024-12-26',
+                            issues: [],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 21,
+                            name: '철도 전기화 사업',
+                            ministry: '국토교통부',
+                            ministryId: 3,
+                            manager: '신철도',
+                            budget: 560,
+                            priority: 'high',
+                            status: 'reviewing',
+                            deadline: '2024-12-26',
+                            issues: ['전력 소비량 대비 감축효과 재검토'],
+                            reviewer: '박검토'
+                        },
+                        
+                        // 농림축산식품부 (5개)
+                        {
+                            id: 22,
+                            name: '스마트팜 보급 확대',
+                            ministry: '농림축산식품부',
+                            ministryId: 4,
+                            manager: '정스마트',
+                            budget: 180,
+                            priority: 'low',
+                            status: 'reviewing',
+                            deadline: '2024-12-27',
+                            issues: [],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 23,
+                            name: '친환경 농업 확산',
+                            ministry: '농림축산식품부',
+                            ministryId: 4,
+                            manager: '김친환',
+                            budget: 280,
+                            priority: 'medium',
+                            status: 'submitted',
+                            deadline: '2024-12-27',
+                            issues: ['유기농 전환 효과 정량화 필요'],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 24,
+                            name: '축산업 메탄 저감 기술',
+                            ministry: '농림축산식품부',
+                            ministryId: 4,
+                            manager: '이축산',
+                            budget: 150,
+                            priority: 'medium',
+                            status: 'reviewing',
+                            deadline: '2024-12-27',
+                            issues: ['메탄 감축량 측정 방법 명확화'],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 25,
+                            name: '산림 바이오매스 활용',
+                            ministry: '농림축산식품부',
+                            ministryId: 4,
+                            manager: '최산림',
+                            budget: 200,
+                            priority: 'low',
+                            status: 'submitted',
+                            deadline: '2024-12-27',
+                            issues: [],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 26,
+                            name: '농업기계 전기화 지원',
+                            ministry: '농림축산식품부',
+                            ministryId: 4,
+                            manager: '한기계',
+                            budget: 120,
+                            priority: 'low',
+                            status: 'completed',
+                            deadline: '2024-12-27',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        
+                        // 과학기술정보통신부 (4개)
+                        {
+                            id: 27,
+                            name: 'AI 기반 에너지 관리 시스템',
+                            ministry: '과학기술정보통신부',
+                            ministryId: 5,
+                            manager: '김인공',
+                            budget: 450,
+                            priority: 'high',
+                            status: 'reviewing',
+                            deadline: '2024-12-26',
+                            issues: ['AI 모델 정확도 검증 필요'],
+                            reviewer: '이검토'
+                        },
+                        {
+                            id: 28,
+                            name: '데이터센터 효율화 기술',
+                            ministry: '과학기술정보통신부',
+                            ministryId: 5,
+                            manager: '박데이터',
+                            budget: 320,
+                            priority: 'medium',
+                            status: 'submitted',
+                            deadline: '2024-12-26',
+                            issues: [],
+                            reviewer: '김검토'
+                        },
+                        {
+                            id: 29,
+                            name: '5G 네트워크 저전력 기술',
+                            ministry: '과학기술정보통신부',
+                            ministryId: 5,
+                            manager: '이오지',
+                            budget: 280,
+                            priority: 'medium',
+                            status: 'completed',
+                            deadline: '2024-12-26',
+                            issues: [],
+                            reviewer: '박검토'
+                        },
+                        {
+                            id: 30,
+                            name: '블록체인 기반 탄소배출 추적',
+                            ministry: '과학기술정보통신부',
+                            ministryId: 5,
+                            manager: '최블록',
+                            budget: 180,
+                            priority: 'low',
+                            status: 'submitted',
+                            deadline: '2024-12-26',
+                            issues: ['블록체인 검증 방법론 보완'],
+                            reviewer: '이검토'
+                        }
+                    ],
+                    
+                    // 공지사항 데이터
+                    notices: [
+                        {
+                            id: 1,
+                            title: '2024년 온실가스감축인지 예산제 1차 검토 완료 안내',
+                            date: '2024-12-20',
+                            important: true
+                        },
+                        {
+                            id: 2,
+                            title: '검토 기준 및 가이드라인 업데이트',
+                            date: '2024-12-18',
+                            important: true
+                        },
+                        {
+                            id: 3,
+                            title: '2차 검토 일정 및 주의사항 안내',
+                            date: '2024-12-15',
+                            important: false
+                        },
+                        {
+                            id: 4,
+                            title: '검토자 워크샵 개최 안내',
+                            date: '2024-12-12',
+                            important: false
+                        },
+                        {
+                            id: 5,
+                            title: '연말 검토 일정 조정 안내',
+                            date: '2024-12-10',
+                            important: false
+                        }
+                    ],
+                    
+                    // 자료실 데이터
+                    resources: [
+                        {
+                            id: 1,
+                            title: '온실가스 감축량 검토 매뉴얼 v3.0',
+                            date: '2024-12-19',
+                            type: 'PDF'
+                        },
+                        {
+                            id: 2,
+                            title: '검토 의견서 작성 양식',
+                            date: '2024-12-18',
+                            type: 'DOCX'
+                        },
+                        {
+                            id: 3,
+                            title: 'GWP 계수 검증 도구',
+                            date: '2024-12-15',
+                            type: 'XLSX'
+                        },
+                        {
+                            id: 4,
+                            title: '부처별 검토 체크리스트',
+                            date: '2024-12-12',
+                            type: 'PDF'
+                        },
+                        {
+                            id: 5,
+                            title: '검토 우수사례 모음집',
+                            date: '2024-12-10',
+                            type: 'PDF'
+                        }
+                    ],
+                    
+                    // 모달 관련
+                    showFeedbackModal: false,
+                    selectedProject: null,
+                    feedbackData: {
+                        result: 'revision',
+                        comment: '',
+                        requirements: ''
+                    }
+                }
+            },
+            
+            computed: {
+                filteredMinistries() {
+                    return this.ministries.filter(ministry => {
+                        const matchesStatus = !this.filterStatus || ministry.submitStatus === this.filterStatus;
+                        const matchesRound = !this.filterRound || ministry.currentRound.toString() === this.filterRound;
+                        const matchesSearch = !this.searchTerm || ministry.name.toLowerCase().includes(this.searchTerm.toLowerCase());
+                        
+                        return matchesStatus && matchesRound && matchesSearch;
+                    });
+                },
+                
+                currentDisplayProjects() {
+                    let filtered = this.projects;
+                    
+                    // 부처 선택 필터링
+                    if (this.selectedMinistry) {
+                        filtered = filtered.filter(p => p.ministryId === this.selectedMinistry.id);
+                    }
+                    
+                    // 내 담당 사업 필터링
+                    if (this.viewType === 'mine') {
+                        filtered = filtered.filter(p => p.reviewer === this.currentReviewer);
+                    }
+                    
+                    // 담당자 필터링
+                    if (this.selectedReviewer) {
+                        filtered = filtered.filter(p => p.reviewer === this.selectedReviewer);
+                    }
+                    
+                    // 우선순위 필터링
+                    if (this.priorityFilter) {
+                        filtered = filtered.filter(p => p.priority === this.priorityFilter);
+                    }
+                    
+                    return filtered;
+                }
+            },
+            
+            methods: {
+                // 연도/차수 선택 관련 함수
+                loadYearData() {
+                    console.log(`${this.selectedYear}년 데이터 로드`);
+                    // 실제로는 API 호출하여 해당 연도 데이터 로드
+                    this.refreshStats();
+                },
+                
+                selectRound(round) {
+                    this.selectedRound = round;
+                    console.log(`${this.selectedYear}년 ${round}차 데이터 로드`);
+                    // 실제로는 API 호출하여 해당 차수 데이터 로드
+                    this.refreshStats();
+                },
+                
+                // 담당자 필터링
+                filterByReviewer() {
+                    // 담당자 선택 시 viewType을 자동으로 조정
+                    if (this.selectedReviewer && this.selectedReviewer === this.currentReviewer) {
+                        this.viewType = 'mine';
+                    } else if (this.selectedReviewer) {
+                        this.viewType = 'all';
+                    }
+                },
+                
+                // 통계 새로고침
+                refreshStats() {
+                    // 연도/차수에 따른 통계 업데이트 시뮬레이션
+                    const baseStats = {
+                        2024: { 1: { total: 180, submitted: 142, reviewing: 45, revision: 38, approved: 59, unsubmitted: 2 } },
+                        2023: { 4: { total: 165, submitted: 165, reviewing: 0, revision: 28, approved: 137, unsubmitted: 0 } },
+                        2022: { 4: { total: 148, submitted: 148, reviewing: 0, revision: 22, approved: 126, unsubmitted: 0 } }
+                    };
+                    
+                    const yearData = baseStats[this.selectedYear];
+                    if (yearData && yearData[this.selectedRound]) {
+                        const data = yearData[this.selectedRound];
+                        this.stats = {
+                            totalProjects: data.total,
+                            submittedProjects: data.submitted,
+                            reviewingProjects: data.reviewing,
+                            completedWithRevision: data.revision,
+                            completedApproved: data.approved,
+                            unsubmittedMinistries: data.unsubmitted
+                        };
+                    }
+                },
+                
+                // 부처 선택
+                selectMinistry(ministry) {
+                    this.selectedMinistry = ministry;
+                },
+                
+                // 부처별 사업 가져오기
+                getMinistryProjects(ministryId) {
+                    return this.projects.filter(p => p.ministryId === ministryId);
+                },
+                
+                // 데이터 새로고침
+                refreshData() {
+                    alert('최신 데이터로 새로고침되었습니다.');
+                    // 실제로는 API 호출
+                },
+                
+                // 일괄 독촉
+                sendBulkReminder() {
+                    const delayedMinistries = this.ministries.filter(m => this.isOverdue(m.deadline));
+                    alert(`${delayedMinistries.length}개 지연 부처에 독촉 알림을 발송했습니다.`);
+                },
+                
+                // 부처별 상세보기
+                viewMinistryDetail(ministry) {
+                    alert(`${ministry.name} 상세 현황 화면으로 이동합니다.`);
+                },
+                
+                // 개별 독촉
+                sendReminder(ministry) {
+                    alert(`${ministry.name}에 독촉 알림을 발송했습니다.`);
+                },
+                
+                // 검토 시작
+                startReview(ministry) {
+                    if (ministry.submitStatus === 'submitted') {
+                        ministry.reviewStatus = 'reviewing';
+                        alert(`${ministry.name} 검토를 시작합니다.`);
+                    }
+                },
+                
+                // 세부사업 상세보기
+                viewProjectDetail(project) {
+                    alert(`${project.name} 상세 내용을 확인합니다.`);
+                },
+                
+                // 세부사업 검토 시작
+                startProjectReview(project) {
+                    project.status = 'reviewing';
+                    alert(`${project.name} 검토를 시작합니다.`);
+                },
+                
+                // 피드백 작성
+                writeFeedback(project) {
+                    this.selectedProject = project;
+                    this.showFeedbackModal = true;
+                },
+                
+                // 세부사업 승인
+                approveProject(project) {
+                    if (confirm(`${project.name}을(를) 승인하시겠습니까?`)) {
+                        project.status = 'approved';
+                        alert('승인이 완료되었습니다.');
+                    }
+                },
+                
+                // 피드백 모달 닫기
+                closeFeedbackModal() {
+                    this.showFeedbackModal = false;
+                    this.selectedProject = null;
+                    this.feedbackData = {
+                        result: 'revision',
+                        comment: '',
+                        requirements: ''
+                    };
+                },
+                
+                // 피드백 제출
+                submitFeedback() {
+                    if (!this.feedbackData.comment) {
+                        alert('상세 의견을 입력해주세요.');
+                        return;
+                    }
+                    
+                    alert(`${this.selectedProject.name}에 대한 검토 의견이 전송되었습니다.`);
+                    this.closeFeedbackModal();
+                },
+                
+                // 일괄 승인
+                bulkApprove() {
+                    const approveableProjects = this.projects.filter(p => p.status === 'completed');
+                    if (confirm(`${approveableProjects.length}개 사업을 일괄 승인하시겠습니까?`)) {
+                        alert('일괄 승인이 완료되었습니다.');
+                    }
+                },
+                
+                // 일괄 피드백
+                bulkFeedback() {
+                    alert('일괄 피드백 작성 화면으로 이동합니다.');
+                },
+                
+                // 검토보고서 생성
+                generateReport() {
+                    alert('검토보고서를 생성합니다. Excel 파일이 다운로드됩니다.');
+                },
+                
+                // 유틸리티 함수들
+                getSubmitStatusText(status) {
+                    const statusMap = {
+                        'waiting': '대기중',
+                        'writing': '작성중',
+                        'submitted': '제출완료',
+                        'reviewing': '검토중',
+                        'completed': '완료'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                getReviewStatusText(status) {
+                    const statusMap = {
+                        'waiting': '대기중',
+                        'reviewing': '검토중',
+                        'completed': '완료',
+                        'feedback': '피드백 전송'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                getProjectStatusText(status) {
+                    const statusMap = {
+                        'submitted': '제출됨',
+                        'reviewing': '검토중',
+                        'completed': '검토완료',
+                        'approved': '승인됨'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                getPriorityText(priority) {
+                    const priorityMap = {
+                        'high': '높음',
+                        'medium': '중간',
+                        'low': '낮음'
+                    };
+                    return priorityMap[priority] || priority;
+                },
+                
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString('ko-KR');
+                },
+                
+                isOverdue(deadline) {
+                    return new Date(deadline) < new Date();
+                },
+                
+                getDaysOverdue(deadline) {
+                    const today = new Date();
+                    const deadlineDate = new Date(deadline);
+                    const diffTime = today - deadlineDate;
+                    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                },
+                
+                // 공지사항 관련 함수
+                viewNotice(notice) {
+                    alert(`공지사항 상세보기\n\n제목: ${notice.title}\n작성일: ${notice.date}\n\n자세한 내용은 공지사항 상세페이지에서 확인하세요.`);
+                },
+                
+                viewAllNotices() {
+                    alert('공지사항 전체 목록 페이지로 이동합니다.');
+                },
+                
+                // 자료실 관련 함수
+                downloadResource(resource) {
+                    alert(`파일 다운로드\n\n파일명: ${resource.title}\n형식: ${resource.type}\n등록일: ${resource.date}\n\n다운로드를 시작합니다.`);
+                },
+                
+                viewAllResources() {
+                    alert('자료실 전체 목록 페이지로 이동합니다.');
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환경공단 관리자 - 컨설팅 관리 대시보드</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #134e4a 0%, #047857 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        /* 헤더 - 관리자 정체성 */
+        .monitor-header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            padding: 12px 20px;
+            background: #f0fdfa;
+            border: 2px solid #134e4a;
+            border-radius: 10px;
+        }
+        
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .year-label {
+            font-weight: bold;
+            color: #134e4a;
+            font-size: 15px;
+        }
+        
+        .year-dropdown {
+            padding: 8px 15px;
+            border: 2px solid #134e4a;
+            border-radius: 8px;
+            font-weight: bold;
+            color: #134e4a;
+            background: white;
+            min-width: 100px;
+            font-size: 14px;
+        }
+        
+        .round-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .round-label {
+            font-weight: bold;
+            color: #134e4a;
+            font-size: 15px;
+        }
+        
+        .round-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .round-btn {
+            padding: 8px 15px;
+            border: 2px solid #134e4a;
+            border-radius: 8px;
+            background: white;
+            color: #134e4a;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 50px;
+        }
+        
+        .round-btn.active {
+            background: #134e4a;
+            color: white;
+        }
+        
+        .round-btn:hover {
+            background: #0f3730;
+            color: white;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .admin-badge {
+            background: #dc2626;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .urgent-alert {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 6px 14px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: pulse-alert 2s infinite;
+        }
+        
+        @keyframes pulse-alert {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* 대시보드 그리드 */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* 컨설팅 전용 그리드 */
+        .consulting-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        /* 카드 스타일 */
+        .card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .card-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #134e4a;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        /* 통계 대시보드 - 컨설팅 추가 */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* 5개 → 6개로 변경 */
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #134e4a;
+            margin-bottom: 8px;
+        }
+        
+        .stat-number.alert {
+            color: #d97706;
+        }
+        
+        .stat-number.consulting {
+            color: #7c3aed; /* 컨설팅 전용 색상 */
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 600;
+        }
+        
+        .stat-detail {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+        
+        .stat-item {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            border-color: #134e4a;
+            background: #f0fdfa;
+        }
+        
+        .stat-item.alert {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        /* 컨설팅 전용 스타일 */
+        .stat-item.consulting {
+            border-color: #7c3aed;
+            background: #faf5ff;
+        }
+        
+        .stat-item.consulting:hover {
+            border-color: #6d28d9;
+            background: #f3e8ff;
+        }
+        
+        /* 컨설팅 신청 목록 테이블 */
+        .consulting-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .consulting-table th {
+            background: #f8fafc;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            font-size: 13px;
+        }
+        
+        .consulting-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+        
+        .consulting-table tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .org-name {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .consulting-type {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .consulting-type.basic { background: #dbeafe; color: #1e40af; }
+        .consulting-type.advanced { background: #fef3c7; color: #92400e; }
+        .consulting-type.custom { background: #f3e8ff; color: #7c3aed; }
+        
+        .priority-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .priority-badge.high { background: #fecaca; color: #991b1b; }
+        .priority-badge.medium { background: #fed7aa; color: #9a3412; }
+        .priority-badge.low { background: #d1fae5; color: #065f46; }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .status-badge.pending { background: #fef3c7; color: #92400e; }
+        .status-badge.approved { background: #d1fae5; color: #065f46; }
+        .status-badge.rejected { background: #fee2e2; color: #991b1b; }
+        .status-badge.scheduled { background: #dbeafe; color: #1e40af; }
+        .status-badge.completed { background: #e0e7ff; color: #3730a3; }
+        
+        .action-btn-sm {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 2px;
+        }
+        
+        .action-btn-sm.primary { background: #134e4a; color: white; }
+        .action-btn-sm.primary:hover { background: #0f3730; }
+        
+        .action-btn-sm.success { background: #10b981; color: white; }
+        .action-btn-sm.success:hover { background: #059669; }
+        
+        .action-btn-sm.danger { background: #ef4444; color: white; }
+        .action-btn-sm.danger:hover { background: #dc2626; }
+        
+        .action-btn-sm.warning { background: #f59e0b; color: white; }
+        .action-btn-sm.warning:hover { background: #d97706; }
+        
+        /* 내 컨설팅 일정 */
+        .my-schedule {
+            max-height: calc(100vh - 380px);
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .my-schedule::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .my-schedule::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+        
+        .my-schedule::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+        
+        .my-schedule::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        .schedule-item {
+            background: #f8fafc;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .schedule-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .schedule-item.urgent {
+            border-color: #f59e0b;
+            background: #fffbeb;
+        }
+        
+        .schedule-item.today {
+            border-color: #7c3aed;
+            background: #faf5ff;
+        }
+        
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .schedule-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .schedule-meta {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .schedule-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .schedule-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        
+        /* 액션 버튼 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #134e4a 0%, #047857 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(19, 78, 74, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(19, 78, 74, 0.4);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+        }
+        
+        .btn-purple {
+            background: #7c3aed;
+            color: white;
+        }
+        
+        .btn-purple:hover {
+            background: #6d28d9;
+        }
+        
+        /* 필터 및 검색 */
+        .filter-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 8px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .filter-select {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+        }
+        
+        .search-input {
+            padding: 6px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 13px;
+            min-width: 200px;
+        }
+        
+        /* 모달 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #374151;
+        }
+        
+        .consulting-form {
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .dashboard-grid, .consulting-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .header-controls {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .stats-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .round-buttons {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* 선택된 행 스타일 */
+        .selected-row {
+            background: #eff6ff !important;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .selected-row:hover {
+            background: #dbeafe !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 헤더 - 관리자 정체성으로 변경 -->
+            <div class="monitor-header">
+                <div class="header-content">
+                    <div class="header-top">
+                        <div class="header-left">
+                            <h1>🏢 환경공단 컨설팅 관리 시스템</h1>
+                            <p>행정기관 컨설팅 신청 승인/반려 및 일정 관리 통합 대시보드</p>
+                        </div>
+                        <div class="header-right">
+                            <div class="admin-badge">시스템 관리자</div>
+                            <div v-if="urgentConsulting > 0" class="urgent-alert">
+                                ⚠️ 긴급 컨설팅 {{ urgentConsulting }}건
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 통계 대시보드 - 컨설팅 통계만 표시 -->
+            <div class="stats-overview">
+                <div class="stat-item consulting">
+                    <div class="stat-number consulting">{{ consultingStats.pending }}</div>
+                    <div class="stat-label">신규 신청</div>
+                    <div class="stat-detail">승인 대기중</div>
+                </div>
+                
+                <div class="stat-item consulting">
+                    <div class="stat-number consulting">{{ consultingStats.approved }}</div>
+                    <div class="stat-label">승인 완료</div>
+                    <div class="stat-detail">일정 조율중</div>
+                </div>
+                
+                <div class="stat-item consulting">
+                    <div class="stat-number consulting">{{ consultingStats.scheduled }}</div>
+                    <div class="stat-label">일정 확정</div>
+                    <div class="stat-detail">방문 예정</div>
+                </div>
+                
+                <div class="stat-item consulting">
+                    <div class="stat-number consulting">{{ consultingStats.myScheduled }}</div>
+                    <div class="stat-label">내 컨설팅</div>
+                    <div class="stat-detail">이번 달</div>
+                </div>
+                
+                <div class="stat-item consulting">
+                    <div class="stat-number consulting">{{ consultingStats.completed }}</div>
+                    <div class="stat-label">완료</div>
+                    <div class="stat-detail">이번 달</div>
+                </div>
+            </div>
+            
+            <!-- 컨설팅 관리 메인 그리드 -->
+            <div class="consulting-grid">
+                <!-- 컨설팅 신청 목록 -->
+                <div class="card">
+                    <div class="card-title">
+                        📝 컨설팅 신청 관리
+                        <div class="card-actions">
+                            <button @click="refreshConsultingData" class="btn btn-primary">
+                                🔄 새로고침
+                            </button>
+                            <button @click="bulkApproveConsulting" class="btn btn-success">
+                                ✅ 일괄 승인
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 필터 섹션 -->
+                    <div class="filter-section">
+                        <div class="filter-group">
+                            <span class="filter-label">상태:</span>
+                            <select v-model="consultingFilter" class="filter-select">
+                                <option value="">전체</option>
+                                <option value="pending">승인대기</option>
+                                <option value="approved">승인됨</option>
+                                <option value="rejected">반려됨</option>
+                                <option value="scheduled">일정확정</option>
+                                <option value="completed">완료</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <span class="filter-label">유형:</span>
+                            <select v-model="typeFilter" class="filter-select">
+                                <option value="">전체</option>
+                                <option value="basic">기본 컨설팅</option>
+                                <option value="advanced">심화 컨설팅</option>
+                                <option value="custom">맞춤형 컨설팅</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <span class="filter-label">검색:</span>
+                            <input 
+                                v-model="searchTerm" 
+                                type="text" 
+                                class="search-input" 
+                                placeholder="기관명 검색..."
+                            >
+                        </div>
+                    </div>
+                    
+                    <!-- 컨설팅 신청 테이블 -->
+                    <table class="consulting-table">
+                        <thead>
+                            <tr>
+                                <th>신청기관</th>
+                                <th>컨설팅 유형</th>
+                                <th>우선순위</th>
+                                <th>신청일</th>
+                                <th>상태</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="consulting in filteredConsultings" :key="consulting.id"
+                                @click="selectConsulting(consulting)"
+                                :class="{ 'selected-row': selectedConsulting?.id === consulting.id }"
+                                style="cursor: pointer;">
+                                <td>
+                                    <div class="org-name">{{ consulting.organization }}</div>
+                                    <div style="font-size: 11px; color: #888;">
+                                        담당자: {{ consulting.manager }} | 연락처: {{ consulting.contact }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="consulting-type" :class="consulting.type">
+                                        {{ getConsultingTypeText(consulting.type) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="priority-badge" :class="consulting.priority">
+                                        {{ getPriorityText(consulting.priority) }}
+                                    </span>
+                                </td>
+                                <td style="font-size: 12px;">
+                                    {{ formatDate(consulting.requestDate) }}
+                                    <div v-if="consulting.preferredDate" style="color: #6b7280; font-size: 11px;">
+                                        희망일: {{ formatDate(consulting.preferredDate) }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="status-badge" :class="consulting.status">
+                                        {{ getConsultingStatusText(consulting.status) }}
+                                    </span>
+                                </td>
+                                <td @click.stop>
+                                    <button 
+                                        v-if="consulting.status === 'pending'"
+                                        @click="approveConsulting(consulting)" 
+                                        class="action-btn-sm success"
+                                    >
+                                        ✅ 승인
+                                    </button>
+                                    <button 
+                                        v-if="consulting.status === 'pending'"
+                                        @click="rejectConsulting(consulting)" 
+                                        class="action-btn-sm danger"
+                                    >
+                                        ❌ 반려
+                                    </button>
+                                    <button @click="viewConsultingDetail(consulting)" class="action-btn-sm primary">
+                                        📄 상세
+                                    </button>
+                                    <button 
+                                        v-if="consulting.status === 'approved'"
+                                        @click="scheduleConsulting(consulting)" 
+                                        class="action-btn-sm warning"
+                                    >
+                                        📅 일정
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 내 컨설팅 일정 -->
+                <div class="card">
+                    <div class="card-title">
+                        📅 내 컨설팅 일정
+                        <div class="card-actions">
+                            <button 
+                                :class="['btn', scheduleView === 'week' ? 'btn-purple' : 'btn-primary']"
+                                @click="scheduleView = 'week'"
+                                style="padding: 6px 12px; font-size: 12px;"
+                            >
+                                주간
+                            </button>
+                            <button 
+                                :class="['btn', scheduleView === 'month' ? 'btn-purple' : 'btn-primary']"
+                                @click="scheduleView = 'month'"
+                                style="padding: 6px 12px; font-size: 12px;"
+                            >
+                                월간
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="my-schedule">
+                        <div 
+                            v-for="schedule in myConsultingSchedule" 
+                            :key="schedule.id"
+                            class="schedule-item"
+                            :class="{ 
+                                urgent: schedule.priority === 'high',
+                                today: isToday(schedule.date)
+                            }"
+                        >
+                            <div class="schedule-header">
+                                <div>
+                                    <div class="schedule-title">{{ schedule.organization }}</div>
+                                    <div class="schedule-meta">
+                                        {{ formatDateTime(schedule.date) }} | {{ schedule.duration }}시간
+                                        <br>{{ schedule.location }}
+                                    </div>
+                                </div>
+                                <div class="schedule-status">
+                                    <span class="consulting-type" :class="schedule.type">
+                                        {{ getConsultingTypeText(schedule.type) }}
+                                    </span>
+                                    <span class="status-badge" :class="schedule.status">
+                                        {{ getConsultingStatusText(schedule.status) }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div v-if="schedule.notes" style="margin: 8px 0; font-size: 12px; color: #6b7280;">
+                                📝 {{ schedule.notes }}
+                            </div>
+                            
+                            <div class="schedule-actions">
+                                <button @click="viewScheduleDetail(schedule)" class="action-btn-sm primary">
+                                    📄 상세보기
+                                </button>
+                                <button 
+                                    v-if="schedule.status === 'scheduled'"
+                                    @click="startConsulting(schedule)" 
+                                    class="action-btn-sm success"
+                                >
+                                    🎯 시작
+                                </button>
+                                <button 
+                                    v-if="schedule.status === 'scheduled'"
+                                    @click="rescheduleConsulting(schedule)" 
+                                    class="action-btn-sm warning"
+                                >
+                                    📅 재조정
+                                </button>
+                                <button 
+                                    v-if="schedule.status === 'in-progress'"
+                                    @click="completeConsulting(schedule)" 
+                                    class="action-btn-sm"
+                                    style="background: #8b5cf6; color: white;"
+                                >
+                                    ✅ 완료
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 일정이 없을 때 -->
+                        <div v-if="myConsultingSchedule.length === 0" style="text-align: center; padding: 40px; color: #6b7280;">
+                            <div style="font-size: 48px; margin-bottom: 15px;">📅</div>
+                            <h3 style="margin-bottom: 10px;">예정된 컨설팅이 없습니다</h3>
+                            <p>새로운 컨설팅 일정을 등록해주세요.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 기존 사업 검토 현황 (간소화) -->
+            <div class="card">
+                <div class="card-title">
+                    📊 컨설팅 현황 요약
+                    <div class="card-actions">
+                        <button @click="viewDetailedReport" class="btn btn-primary">
+                            📈 상세 보고서
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+                    <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #134e4a; margin-bottom: 8px;">
+                            {{ Math.round((consultingStats.approved / consultingStats.pending) * 100) }}%
+                        </div>
+                        <div style="font-size: 14px; color: #666; font-weight: 600;">승인률</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #0ea5e9; margin-bottom: 8px;">
+                            {{ Math.round((consultingStats.scheduled / consultingStats.approved) * 100) }}%
+                        </div>
+                        <div style="font-size: 14px; color: #666; font-weight: 600;">일정 확정률</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #10b981; margin-bottom: 8px;">
+                            {{ Math.round((consultingStats.completed / consultingStats.totalThisMonth) * 100) }}%
+                        </div>
+                        <div style="font-size: 14px; color: #666; font-weight: 600;">완료율</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px;">
+                        <div style="font-size: 24px; font-weight: bold; color: #7c3aed; margin-bottom: 8px;">
+                            {{ consultingStats.totalThisMonth }}
+                        </div>
+                        <div style="font-size: 14px; color: #666; font-weight: 600;">이달 총 건수</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 액션 패널 -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 style="color: #134e4a; margin-bottom: 8px;">🎯 관리자 작업</h3>
+                        <p style="font-size: 13px; color: #666;">컨설팅 및 검토 업무에 대한 통합 관리를 수행할 수 있습니다.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button @click="generateConsultingReport" class="btn btn-purple">
+                            📊 컨설팅 보고서
+                        </button>
+                        <button @click="manageConsultors" class="btn btn-warning">
+                            👥 컨설턴트 관리
+                        </button>
+                        <button @click="systemSettings" class="btn btn-primary">
+                            ⚙️ 시스템 설정
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 컨설팅 승인/반려 모달 -->
+        <div v-if="showConsultingModal" class="modal-overlay" @click="closeConsultingModal">
+            <div class="modal-content" @click.stop>
+                <div class="modal-header">
+                    {{ consultingModalType === 'approve' ? '🟢 컨설팅 승인' : '🔴 컨설팅 반려' }}: {{ selectedConsulting?.organization }}
+                </div>
+                
+                <div class="consulting-form">
+                    <div class="form-group">
+                        <label class="form-label">처리 사유</label>
+                        <textarea 
+                            v-model="consultingDecision.reason"
+                            class="form-textarea"
+                            :placeholder="consultingModalType === 'approve' ? '승인 사유를 입력해주세요...' : '반려 사유를 입력해주세요...'"
+                        ></textarea>
+                    </div>
+                    
+                    <div v-if="consultingModalType === 'approve'" class="form-group">
+                        <label class="form-label">담당 컨설턴트 배정</label>
+                        <select v-model="consultingDecision.assignedConsultant" class="form-select">
+                            <option value="">담당자 선택</option>
+                            <option value="김컨설">김컨설</option>
+                            <option value="이컨설">이컨설</option>
+                            <option value="박컨설">박컨설</option>
+                            <option value="최컨설">최컨설</option>
+                        </select>
+                    </div>
+                    
+                    <div v-if="consultingModalType === 'approve'" class="form-group">
+                        <label class="form-label">예상 소요 시간</label>
+                        <select v-model="consultingDecision.estimatedHours" class="form-select">
+                            <option value="2">2시간</option>
+                            <option value="4">4시간 (반일)</option>
+                            <option value="8">8시간 (전일)</option>
+                            <option value="16">16시간 (2일)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button @click="submitConsultingDecision" class="btn" :class="consultingModalType === 'approve' ? 'btn-success' : 'btn-danger'">
+                        {{ consultingModalType === 'approve' ? '✅ 승인 처리' : '❌ 반려 처리' }}
+                    </button>
+                    <button @click="closeConsultingModal" class="btn" style="background: #6b7280; color: white;">
+                        🚫 취소
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 컨설팅 통계
+                    consultingStats: {
+                        pending: 12,        // 신규 신청
+                        approved: 8,        // 승인됨
+                        scheduled: 15,      // 일정 확정
+                        myScheduled: 5,     // 내 일정
+                        completed: 22,      // 완료
+                        totalThisMonth: 28  // 이달 총 컨설팅
+                    },
+                    
+                    urgentConsulting: 3,
+                    
+                    // 필터링
+                    consultingFilter: '',
+                    typeFilter: '',
+                    searchTerm: '',
+                    
+                    // 화면 상태
+                    selectedConsulting: null,
+                    scheduleView: 'week',
+                    
+                    // 컨설팅 신청 목록
+                    consultingRequests: [
+                        {
+                            id: 1,
+                            organization: '서울특별시청',
+                            manager: '김서울',
+                            contact: '02-1234-5678',
+                            type: 'basic',
+                            priority: 'high',
+                            requestDate: '2024-12-20',
+                            preferredDate: '2024-12-28',
+                            status: 'pending',
+                            description: '온실가스 감축 계획 수립 지원 요청'
+                        },
+                        {
+                            id: 2,
+                            organization: '부산광역시청',
+                            manager: '이부산',
+                            contact: '051-987-6543',
+                            type: 'advanced',
+                            priority: 'medium',
+                            requestDate: '2024-12-19',
+                            preferredDate: '2024-12-30',
+                            status: 'pending',
+                            description: '탄소중립 실행계획 검토 및 보완'
+                        },
+                        {
+                            id: 3,
+                            organization: '인천광역시청',
+                            manager: '박인천',
+                            contact: '032-555-7777',
+                            type: 'custom',
+                            priority: 'high',
+                            requestDate: '2024-12-18',
+                            preferredDate: '2024-12-27',
+                            status: 'approved',
+                            assignedConsultant: '김컨설',
+                            description: '항만지역 특화 감축방안 컨설팅'
+                        },
+                        {
+                            id: 4,
+                            organization: '대구광역시청',
+                            manager: '최대구',
+                            contact: '053-111-2222',
+                            type: 'basic',
+                            priority: 'low',
+                            requestDate: '2024-12-17',
+                            preferredDate: '2025-01-05',
+                            status: 'rejected',
+                            rejectionReason: '신청 서류 미비'
+                        },
+                        {
+                            id: 5,
+                            organization: '광주광역시청',
+                            manager: '정광주',
+                            contact: '062-333-4444',
+                            type: 'advanced',
+                            priority: 'medium',
+                            requestDate: '2024-12-16',
+                            preferredDate: '2024-12-29',
+                            status: 'scheduled',
+                            assignedConsultant: '이컨설'
+                        }
+                    ],
+                    
+                    // 내 컨설팅 일정
+                    myConsultingSchedule: [
+                        {
+                            id: 1,
+                            organization: '인천광역시청',
+                            date: '2024-12-27T09:00:00',
+                            duration: 8,
+                            location: '인천시청 회의실 A',
+                            type: 'custom',
+                            status: 'scheduled',
+                            priority: 'high',
+                            notes: '항만지역 특화 감축방안 논의'
+                        },
+                        {
+                            id: 2,
+                            organization: '광주광역시청',
+                            date: '2024-12-29T14:00:00',
+                            duration: 4,
+                            location: '광주시청 대회의실',
+                            type: 'advanced',
+                            status: 'scheduled',
+                            priority: 'medium',
+                            notes: '탄소중립 실행계획 검토'
+                        },
+                        {
+                            id: 3,
+                            organization: '울산광역시청',
+                            date: '2024-12-23T10:00:00',
+                            duration: 6,
+                            location: '울산시청 컨퍼런스룸',
+                            type: 'basic',
+                            status: 'completed',
+                            priority: 'medium',
+                            notes: '산업단지 에너지 효율화 방안'
+                        },
+                        {
+                            id: 4,
+                            organization: '세종특별자치시청',
+                            date: '2024-12-30T09:30:00',
+                            duration: 8,
+                            location: '세종시청 스마트회의실',
+                            type: 'custom',
+                            status: 'scheduled',
+                            priority: 'high',
+                            notes: '스마트시티 기반 탄소중립 모델 구축'
+                        },
+                        {
+                            id: 5,
+                            organization: '제주특별자치도청',
+                            date: '2025-01-03T13:00:00',
+                            duration: 4,
+                            location: '제주도청 회의실',
+                            type: 'advanced',
+                            status: 'scheduled',
+                            priority: 'low',
+                            notes: '관광산업 친환경 전환 컨설팅'
+                        }
+                    ],
+                    
+                    // 모달 관련
+                    showConsultingModal: false,
+                    consultingModalType: 'approve', // 'approve' or 'reject'
+                    consultingDecision: {
+                        reason: '',
+                        assignedConsultant: '',
+                        estimatedHours: '4'
+                    }
+                }
+            },
+            
+            computed: {
+                filteredConsultings() {
+                    return this.consultingRequests.filter(consulting => {
+                        const matchesStatus = !this.consultingFilter || consulting.status === this.consultingFilter;
+                        const matchesType = !this.typeFilter || consulting.type === this.typeFilter;
+                        const matchesSearch = !this.searchTerm || consulting.organization.toLowerCase().includes(this.searchTerm.toLowerCase());
+                        
+                        return matchesStatus && matchesType && matchesSearch;
+                    });
+                }
+            },
+            
+            methods: {
+                // 컨설팅 관리 함수들
+                refreshConsultingData() {
+                    alert('컨설팅 데이터를 새로고침했습니다.');
+                },
+                
+                selectConsulting(consulting) {
+                    this.selectedConsulting = consulting;
+                },
+                
+                approveConsulting(consulting) {
+                    this.selectedConsulting = consulting;
+                    this.consultingModalType = 'approve';
+                    this.showConsultingModal = true;
+                },
+                
+                rejectConsulting(consulting) {
+                    this.selectedConsulting = consulting;
+                    this.consultingModalType = 'reject';
+                    this.showConsultingModal = true;
+                },
+                
+                closeConsultingModal() {
+                    this.showConsultingModal = false;
+                    this.selectedConsulting = null;
+                    this.consultingDecision = {
+                        reason: '',
+                        assignedConsultant: '',
+                        estimatedHours: '4'
+                    };
+                },
+                
+                submitConsultingDecision() {
+                    if (!this.consultingDecision.reason) {
+                        alert('처리 사유를 입력해주세요.');
+                        return;
+                    }
+                    
+                    if (this.consultingModalType === 'approve') {
+                        if (!this.consultingDecision.assignedConsultant) {
+                            alert('담당 컨설턴트를 선택해주세요.');
+                            return;
+                        }
+                        this.selectedConsulting.status = 'approved';
+                        this.selectedConsulting.assignedConsultant = this.consultingDecision.assignedConsultant;
+                        alert(`${this.selectedConsulting.organization} 컨설팅 신청이 승인되었습니다.`);
+                    } else {
+                        this.selectedConsulting.status = 'rejected';
+                        this.selectedConsulting.rejectionReason = this.consultingDecision.reason;
+                        alert(`${this.selectedConsulting.organization} 컨설팅 신청이 반려되었습니다.`);
+                    }
+                    
+                    this.closeConsultingModal();
+                },
+                
+                bulkApproveConsulting() {
+                    const pendingConsultings = this.consultingRequests.filter(c => c.status === 'pending');
+                    if (confirm(`${pendingConsultings.length}건의 컨설팅 신청을 일괄 승인하시겠습니까?`)) {
+                        alert('일괄 승인이 완료되었습니다.');
+                    }
+                },
+                
+                viewConsultingDetail(consulting) {
+                    alert(`${consulting.organization} 컨설팅 신청 상세 정보를 확인합니다.\n\n신청내용: ${consulting.description}`);
+                },
+                
+                scheduleConsulting(consulting) {
+                    alert(`${consulting.organization} 컨설팅 일정을 조정합니다.`);
+                },
+                
+                // 내 일정 관리 함수들
+                viewScheduleDetail(schedule) {
+                    alert(`${schedule.organization} 컨설팅 상세 일정을 확인합니다.\n\n일시: ${this.formatDateTime(schedule.date)}\n장소: ${schedule.location}\n소요시간: ${schedule.duration}시간`);
+                },
+                
+                startConsulting(schedule) {
+                    if (confirm(`${schedule.organization} 컨설팅을 시작하시겠습니까?`)) {
+                        schedule.status = 'in-progress';
+                        alert('컨설팅이 시작되었습니다.');
+                    }
+                },
+                
+                rescheduleConsulting(schedule) {
+                    alert(`${schedule.organization} 컨설팅 일정을 재조정합니다.`);
+                },
+                
+                completeConsulting(schedule) {
+                    if (confirm(`${schedule.organization} 컨설팅을 완료 처리하시겠습니까?`)) {
+                        schedule.status = 'completed';
+                        alert('컨설팅이 완료되었습니다.');
+                    }
+                },
+                
+                // 보고서 관련 함수들
+                viewDetailedReport() {
+                    alert('컨설팅 상세 보고서 화면으로 이동합니다.');
+                },
+                
+                generateConsultingReport() {
+                    alert('컨설팅 현황 보고서를 생성합니다. Excel 파일이 다운로드됩니다.');
+                },
+                
+                manageConsultors() {
+                    alert('컨설턴트 관리 화면으로 이동합니다.');
+                },
+                
+                systemSettings() {
+                    alert('시스템 설정 화면으로 이동합니다.');
+                },
+                
+                // 유틸리티 함수들
+                getConsultingTypeText(type) {
+                    const typeMap = {
+                        'basic': '기본',
+                        'advanced': '심화',
+                        'custom': '맞춤형'
+                    };
+                    return typeMap[type] || type;
+                },
+                
+                getConsultingStatusText(status) {
+                    const statusMap = {
+                        'pending': '승인대기',
+                        'approved': '승인됨',
+                        'rejected': '반려됨',
+                        'scheduled': '일정확정',
+                        'in-progress': '진행중',
+                        'completed': '완료'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                getPriorityText(priority) {
+                    const priorityMap = {
+                        'high': '높음',
+                        'medium': '중간',
+                        'low': '낮음'
+                    };
+                    return priorityMap[priority] || priority;
+                },
+                
+                formatDate(dateString) {
+                    return new Date(dateString).toLocaleDateString('ko-KR');
+                },
+                
+                formatDateTime(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('ko-KR') + ' ' + date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+                },
+                
+                isToday(dateString) {
+                    const today = new Date();
+                    const date = new Date(dateString);
+                    return today.toDateString() === date.toDateString();
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 

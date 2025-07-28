@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>환경부 - 온실가스감축인지 예산제 전반 현황 대시보드</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        /* 헤더 섹션 - 환경부 대시보드 */
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .ministry-info h1 {
+            color: #065f46;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+        
+        .ministry-info p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+        
+        .year-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .year-select {
+            padding: 10px 15px;
+            border: 2px solid #065f46;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #065f46;
+        }
+        
+        /* 정책 목표 및 법적 근거 */
+        .policy-section {
+            background: #ecfdf5;
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .policy-title {
+            color: #065f46;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .policy-title::before {
+            content: "📜";
+            margin-right: 8px;
+        }
+        
+        .policy-content {
+            color: #047857;
+            line-height: 1.6;
+        }
+        
+        /* 핵심 지표 대시보드 */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+        }
+        
+        .kpi-card.budget { border-left-color: #3b82f6; }
+        .kpi-card.ministries { border-left-color: #10b981; }
+        .kpi-card.projects { border-left-color: #f59e0b; }
+        .kpi-card.completion { border-left-color: #8b5cf6; }
+        .kpi-card.reduction { border-left-color: #ef4444; }
+        
+        .kpi-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .kpi-change {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .kpi-up { color: #10b981; }
+        .kpi-down { color: #ef4444; }
+        
+        /* 차트 섹션 */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-title {
+            color: #374151;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* 부처별 현황 테이블 */
+        .ministry-status-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            color: #065f46;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .export-btn {
+            background: #065f46;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .ministry-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .ministry-table th,
+        .ministry-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .ministry-table th {
+            background: #f9fafb;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .progress-bar {
+            width: 100px;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.3s ease;
+        }
+        
+        .status-indicator {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .status-normal { background: #d1fae5; color: #065f46; }
+        .status-warning { background: #fef3c7; color: #92400e; }
+        .status-critical { background: #fee2e2; color: #991b1b; }
+        
+        /* 알림 및 이슈 섹션 */
+        .alerts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .alert-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .alert-card.critical {
+            border-left: 5px solid #ef4444;
+        }
+        
+        .alert-card.info {
+            border-left: 5px solid #3b82f6;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .alert-critical .alert-title {
+            color: #dc2626;
+        }
+        
+        .alert-info .alert-title {
+            color: #2563eb;
+        }
+        
+        .alert-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 14px;
+        }
+        
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .alerts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .ministry-table {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 헤더 섹션 -->
+            <div class="header">
+                <div class="header-top">
+                    <div class="ministry-info">
+                        <h1>🏛️ 환경부 온실가스감축인지 예산제 통합 대시보드</h1>
+                        <p>온실가스 감축인지 예산제도 전반 운영 현황 및 성과 관리</p>
+                    </div>
+                    <div class="year-selector">
+                        <label for="yearSelect" style="font-weight: bold; color: #374151;">대상연도:</label>
+                        <select id="yearSelect" v-model="selectedYear" class="year-select">
+                            <option value="2025">2025년</option>
+                            <option value="2024">2024년</option>
+                            <option value="2023">2023년</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 정책 목표 및 법적 근거 -->
+                <div class="policy-section">
+                    <div class="policy-title">온실가스 감축인지 예산제도 개요</div>
+                    <div class="policy-content">
+                        <strong>법적 근거:</strong> 「기후위기 대응을 위한 탄소중립·녹색성장 기본법」 제28조<br>
+                        <strong>목적:</strong> 국가 및 지방자치단체의 예산이 온실가스 감축에 미치는 영향을 미리 분석·평가하여 온실가스 감축 효과를 제고<br>
+                        <strong>대상:</strong> 예산 {{ currentYearStats.budgetProjects }}개 사업 ({{ currentYearStats.budgetAmount.toLocaleString() }}억원) + 기금 {{ currentYearStats.fundProjects }}개 사업 ({{ currentYearStats.fundAmount.toLocaleString() }}억원)
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 핵심 지표 대시보드 - 실제 데이터 반영 -->
+            <div class="kpi-grid">
+                <div class="kpi-card budget">
+                    <div class="kpi-number" style="color: #3b82f6;">{{ (currentYearStats.budgetAmount + currentYearStats.fundAmount).toLocaleString() }}</div>
+                    <div class="kpi-label">총 예산규모 (억원)</div>
+                    <div class="kpi-change" :class="currentYearStats.budgetGrowth > 0 ? 'kpi-up' : 'kpi-down'">
+                        전년 대비 {{ currentYearStats.budgetGrowth > 0 ? '+' : '' }}{{ currentYearStats.budgetGrowth }}%
+                    </div>
+                </div>
+                <div class="kpi-card ministries">
+                    <div class="kpi-number" style="color: #10b981;">{{ currentYearStats.totalMinistries }}</div>
+                    <div class="kpi-label">참여 부처 수</div>
+                    <div class="kpi-change kpi-up">예산 {{ currentYearStats.budgetMinistries }}개 + 기금 {{ currentYearStats.fundMinistries }}개</div>
+                </div>
+                <div class="kpi-card projects">
+                    <div class="kpi-number" style="color: #f59e0b;">{{ currentYearStats.totalProjects }}</div>
+                    <div class="kpi-label">총 세부사업 수</div>
+                    <div class="kpi-change" :class="currentYearStats.projectGrowth > 0 ? 'kpi-up' : 'kpi-down'">
+                        전년 대비 {{ currentYearStats.projectGrowth > 0 ? '+' : '' }}{{ currentYearStats.projectGrowth }}개 사업
+                    </div>
+                </div>
+                <div class="kpi-card completion">
+                    <div class="kpi-number" style="color: #8b5cf6;">{{ currentYearStats.firstRoundSuccess }}%</div>
+                    <div class="kpi-label">1차 정상 완료율</div>
+                    <div class="kpi-change kpi-up">{{ currentYearStats.multiRoundProjects }}개 사업 재검토</div>
+                </div>
+                <div class="kpi-card reduction">
+                    <div class="kpi-number" style="color: #ef4444;">{{ currentYearStats.co2Reduction.toLocaleString() }}</div>
+                    <div class="kpi-label">예상 CO₂ 감축량 (만톤)</div>
+                    <div class="kpi-change kpi-up">2030 목표의 {{ currentYearStats.targetProgress }}%</div>
+                </div>
+            </div>
+            
+            <!-- 차트 섹션 - 3개 컬럼으로 조정 -->
+            <div style="display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                <div class="chart-card">
+                    <div class="chart-title">📊 전체 제출 진행 현황 ({{ selectedYear }}년)</div>
+                    <div class="chart-container" style="position: relative;">
+                        <canvas id="progressChart"></canvas>
+                        <!-- 중앙에 전체 건수 표시 -->
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                            <div style="font-size: 24px; font-weight: bold; color: #059669;">{{ currentYearStats.totalProjects }}</div>
+                            <div style="font-size: 12px; color: #6b7280;">총 사업수</div>
+                        </div>
+                    </div>
+                    <!-- 상세 현황 표시 -->
+                    <div style="margin-top: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; font-size: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #10b981;">● 작성완료</span>
+                            <strong>{{ progressStats.completed }}건</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #3b82f6;">● 검토완료</span>
+                            <strong>{{ progressStats.reviewed }}건</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #f59e0b;">● 검토중</span>
+                            <strong>{{ progressStats.inReview }}건</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: #e5e7eb;">● 미제출</span>
+                            <strong>{{ progressStats.pending }}건</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">📈 사업수 증감</div>
+                    <div class="chart-container">
+                        <canvas id="projectCompareChart"></canvas>
+                    </div>
+                    <!-- 변화량 요약 -->
+                    <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+                        <div style="color: #059669; font-weight: bold;">+17개 사업 증가</div>
+                        <div style="color: #6b7280; font-size: 12px;">전년 대비 +5.8%</div>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-title">💰 예산액 증감</div>
+                    <div class="chart-container">
+                        <canvas id="budgetCompareChart"></canvas>
+                    </div>
+                    <!-- 변화량 요약 -->
+                    <div style="margin-top: 15px; text-align: center; font-size: 14px;">
+                        <div style="color: #059669; font-weight: bold;">+1.18조원 증가</div>
+                        <div style="color: #6b7280; font-size: 12px;">전년 대비 +10.8%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 부처별 분포 차트 - 수치 표시 개선 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                <div class="chart-card">
+                    <div class="chart-title">🏛️ 부처별 사업 분포 ({{ selectedYear }}년)</div>
+                    <div class="chart-container">
+                        <canvas id="ministryChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 부처별 상세 현황 테이블 -->
+                <div class="chart-card">
+                    <div class="chart-title">📋 부처별 상세 현황</div>
+                    <div style="padding: 10px; max-height: 300px; overflow-y: auto;">
+                        <table style="width: 100%; font-size: 12px;">
+                            <thead>
+                                <tr style="background: #f8fafc;">
+                                    <th style="padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0;">부처</th>
+                                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0;">사업수</th>
+                                    <th style="padding: 8px; text-align: right; border-bottom: 1px solid #e2e8f0;">비율</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="ministry in ministryDistribution" :key="ministry.name">
+                                    <td style="padding: 6px 8px; border-bottom: 1px solid #f1f5f9;">{{ ministry.name }}</td>
+                                    <td style="padding: 6px 8px; text-align: right; font-weight: bold; border-bottom: 1px solid #f1f5f9;">{{ ministry.projects }}개</td>
+                                    <td style="padding: 6px 8px; text-align: right; color: #059669; border-bottom: 1px solid #f1f5f9;">{{ ministry.percentage }}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 부처별 현황 테이블 - 실무 중심으로 개선 -->
+            <div class="ministry-status-section">
+                <div class="section-header">
+                    <h2 class="section-title">부처별 사업 현황 ({{ selectedYear }}년)</h2>
+                    <div style="display: flex; gap: 10px;">
+                        <select v-model="viewType" style="padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+                            <option value="budget">예산 사업</option>
+                            <option value="fund">기금 사업</option>
+                            <option value="all">통합 현황</option>
+                        </select>
+                        <button class="export-btn" @click="exportData()">📊 Excel 내보내기</button>
+                    </div>
+                </div>
+                
+                <table class="ministry-table">
+                    <thead>
+                        <tr>
+                            <th>부처명</th>
+                            <th>세부사업수</th>
+                            <th>예산액(억원)</th>
+                            <th>작성완료 사업수</th>
+                            <th>정상 검토완료 수</th>
+                            <th>전년대비 사업수 증감</th>
+                            <th>전년대비 예산액 증감</th>
+                            <th>진행 상태</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="ministry in getFilteredMinistryData" :key="ministry.name">
+                            <td style="font-weight: bold;">{{ ministry.name }}</td>
+                            <td>{{ ministry.totalProjects }}</td>
+                            <td>{{ ministry.totalBudget.toLocaleString() }}</td>
+                            <td>{{ ministry.completedProjects }}</td>
+                            <td>{{ ministry.approvedProjects }}</td>
+                            <!-- 사업수 증감: 개수(비율) 형태 -->
+                            <td :style="{ color: ministry.projectChange > 0 ? '#10b981' : ministry.projectChange < 0 ? '#ef4444' : '#6b7280' }">
+                                {{ ministry.projectChange > 0 ? '+' : '' }}{{ ministry.projectChange }}개
+                                <span style="font-size: 11px; margin-left: 4px;">
+                                    ({{ ministry.projectChangeRate > 0 ? '+' : '' }}{{ ministry.projectChangeRate }}%)
+                                </span>
+                            </td>
+                            <!-- 예산액 증감: 금액(비율) 형태 -->
+                            <td :style="{ color: ministry.budgetChangeRate > 0 ? '#10b981' : ministry.budgetChangeRate < 0 ? '#ef4444' : '#6b7280' }">
+                                {{ ministry.budgetChangeAmount.toLocaleString() }}억원
+                                <span style="font-size: 11px; margin-left: 4px;">
+                                    ({{ ministry.budgetChangeRate > 0 ? '+' : '' }}{{ ministry.budgetChangeRate }}%)
+                                </span>
+                            </td>
+                            <td>
+                                <span :class="getStatusClass(ministry.status)">{{ ministry.status }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 알림 및 이슈 섹션 -->
+            <div class="alerts-section">
+                <div class="alert-card critical">
+                    <div class="alert-title">
+                        🚨 긴급 처리 필요 사항
+                    </div>
+                    <div class="alert-item">산업통상자원부: 2개 사업 마감일 임박 (D-2)</div>
+                    <div class="alert-item">농림축산식품부: 검토 지연으로 일정 조정 필요</div>
+                    <div class="alert-item">국토교통부: 재작성 요청 사업 3건 미처리</div>
+                    <div class="alert-item">과학기술정보통신부: 자문위원 배정 대기 중</div>
+                </div>
+                
+                <div class="alert-card info">
+                    <div class="alert-title">
+                        📈 제도 운영 현황
+                    </div>
+                    <div class="alert-item">전체 진행률: 82.5% (목표 85% 대비 97%)</div>
+                    <div class="alert-item">평균 검토 소요시간: 3.2일 (목표 3일 대비 107%)</div>
+                    <div class="alert-item">자문의견 반영률: 94.8% (우수 수준)</div>
+                    <div class="alert-item">예산 정확성: 99.1% (검증 오류 0.9%)</div>
+                </div>
+            </div>
+            
+            <!-- 연도별 성과 비교 -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 25px;">
+                <h2 style="color: #065f46; margin-bottom: 20px; text-align: center;">📊 연도별 성과 비교</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div v-for="yearData in yearlyComparison" :key="yearData.year" 
+                         style="text-align: center; padding: 15px; border-radius: 8px;"
+                         :style="{background: yearData.year == selectedYear ? '#ecfdf5' : '#f9fafb'}">
+                        <h3 style="color: #374151; margin-bottom: 10px;">{{ yearData.year }}년</h3>
+                        <div style="font-size: 24px; font-weight: bold; color: #059669; margin-bottom: 5px;">
+                            {{ yearData.budget.toLocaleString() }}억원
+                        </div>
+                        <div style="color: #6b7280; font-size: 14px; margin-bottom: 3px;">
+                            {{ yearData.projects }}개 사업
+                        </div>
+                        <div style="color: #6b7280; font-size: 14px;">
+                            CO₂ {{ yearData.reduction }}만톤 감축
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 정보 섹션 - 의미있는 콘텐츠로 교체 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px;">
+                <!-- 왼쪽: 탄소중립 목표 달성 현황 -->
+                <div style="background: linear-gradient(135deg, #065f46 0%, #047857 100%); border-radius: 12px; padding: 25px; color: white;">
+                    <h3 style="color: white; font-size: 18px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center;">
+                        🎯 2030 탄소중립 목표 달성 현황
+                    </h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-size: 14px;">예상 CO₂ 감축량</span>
+                                <span style="font-size: 20px; font-weight: bold;">{{ currentYearStats.co2Reduction.toLocaleString() }}만톤</span>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.2); height: 8px; border-radius: 4px; overflow: hidden;">
+                                <div style="background: #10b981; height: 100%; width: {{ currentYearStats.targetProgress }}%; border-radius: 4px;"></div>
+                            </div>
+                            <div style="font-size: 12px; margin-top: 5px; opacity: 0.9;">
+                                2030 목표의 {{ currentYearStats.targetProgress }}% 달성
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;">
+                            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="font-weight: bold; color: #10b981;">+10.8%</div>
+                                <div style="opacity: 0.9;">전년대비 증가</div>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 6px; text-align: center;">
+                                <div style="font-weight: bold; color: #3b82f6;">87%</div>
+                                <div style="opacity: 0.9;">1차 정상완료율</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 오른쪽: 주요 성과 및 혁신사례 -->
+                <div style="background: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 25px;">
+                    <h3 style="color: #059669; font-size: 18px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center;">
+                        🏆 2025년 주요 성과 하이라이트
+                    </h3>
+                    
+                    <div style="space-y: 15px;">
+                        <div style="border-left: 4px solid #10b981; padding-left: 15px; margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #059669; margin-bottom: 5px;">기후대응기금 확대</div>
+                            <div style="font-size: 13px; color: #6b7280; line-height: 1.4;">
+                                교육부 기후대응기금 2.3조원 규모로 확대, 탄소중립 인재양성 가속화
+                            </div>
+                        </div>
+                        
+                        <div style="border-left: 4px solid #3b82f6; padding-left: 15px; margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #2563eb; margin-bottom: 5px;">신재생에너지 투자 확대</div>
+                            <div style="font-size: 13px; color: #6b7280; line-height: 1.4;">
+                                산업부 신재생에너지 예산 1.1조원, 전년대비 18% 증가로 에너지전환 가속
+                            </div>
+                        </div>
+                        
+                        <div style="border-left: 4px solid #f59e0b; padding-left: 15px; margin-bottom: 15px;">
+                            <div style="font-weight: bold; color: #d97706; margin-bottom: 5px;">교통·건설 혁신</div>
+                            <div style="font-size: 13px; color: #6b7280; line-height: 1.4;">
+                                국토부 친환경 교통인프라 예산 319억원, 전년대비 211% 대폭 증액
+                            </div>
+                        </div>
+                        
+                        <div style="border-left: 4px solid #8b5cf6; padding-left: 15px;">
+                            <div style="font-weight: bold; color: #7c3aed; margin-bottom: 5px;">스마트농업 확산</div>
+                            <div style="font-size: 13px; color: #6b7280; line-height: 1.4;">
+                                농림부 스마트농업 예산 131억원, 탄소저감 농업기술 보급 확대
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 하단 정보 섹션 - 공지사항, 자료실 추가 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                <!-- 왼쪽: 공지사항 -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #334155; font-size: 16px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        📢 공지사항
+                        <button @click="viewAllNotices" style="background: #6b7280; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;">전체보기</button>
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li v-for="notice in notices" :key="notice.id" @click="viewNotice(notice)" style="padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                            <div style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">{{ notice.title }}</div>
+                            <div style="font-size: 12px; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+                                <span>{{ notice.date }}</span>
+                                <span :style="notice.priority === 'important' ? 'background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;' : 'background: #059669; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;'">
+                                    {{ notice.priority === 'important' ? '중요' : '일반' }}
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- 오른쪽: 자료실 -->
+                <div style="background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 12px; padding: 20px;">
+                    <h3 style="color: #334155; font-size: 16px; font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        📁 자료실
+                        <button @click="viewAllResources" style="background: #6b7280; color: white; padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 12px;">전체보기</button>
+                    </h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li v-for="resource in resources" :key="resource.id" @click="downloadResource(resource)" style="padding: 12px; border-bottom: 1px solid #e2e8f0; cursor: pointer; transition: all 0.3s ease;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='transparent'">
+                            <div style="font-weight: 500; color: #1e293b; margin-bottom: 4px;">{{ resource.title }}</div>
+                            <div style="font-size: 12px; color: #64748b; display: flex; justify-content: space-between; align-items: center;">
+                                <span>{{ resource.date }}</span>
+                                <span style="background: #3b82f6; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold;">
+                                    {{ resource.type }}
+                                </span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        createApp({
+            setup() {
+                // 현재 선택된 연도
+                const selectedYear = ref('2025');
+                const viewType = ref('all'); // budget, fund, all
+                
+                // 실제 데이터 반영한 현재 연도 통계
+                const currentYearStats = computed(() => {
+                    const stats2025 = {
+                        budgetProjects: 151,
+                        budgetAmount: 7435.5, // 단위: 억원
+                        fundProjects: 160,
+                        fundAmount: 4617.1,
+                        totalMinistries: 17,
+                        budgetMinistries: 14,
+                        fundMinistries: 8,
+                        firstRoundSuccess: 87,
+                        multiRoundProjects: 42,
+                        co2Reduction: 520,
+                        targetProgress: 16.8,
+                        budgetGrowth: 12.0,
+                        projectGrowth: 17
+                    };
+                    
+                    const stats2024 = {
+                        budgetProjects: 122,
+                        budgetAmount: 6637.1,
+                        fundProjects: 172,
+                        fundAmount: 4240.5,
+                        totalMinistries: 16,
+                        budgetMinistries: 13,
+                        fundMinistries: 8,
+                        firstRoundSuccess: 82,
+                        multiRoundProjects: 53,
+                        co2Reduction: 487,
+                        targetProgress: 15.2,
+                        budgetGrowth: 8.5,
+                        projectGrowth: 12
+                    };
+                    
+                    const data = selectedYear.value === '2025' ? stats2025 : stats2024;
+                    return {
+                        ...data,
+                        totalProjects: data.budgetProjects + data.fundProjects
+                    };
+                });
+                
+                // 실제 부처별 데이터 (증감 정보 보완)
+                const ministryData = ref({
+                    2025: [
+                        { 
+                            name: '교육부', 
+                            totalProjects: 136,
+                            totalBudget: 2564.7,
+                            completedProjects: 130,
+                            approvedProjects: 129,
+                            projectChange: -6,
+                            projectChangeRate: -4.2, // (136-142)/142*100
+                            budgetChangeAmount: 3.8, // 2564.7 - 2560.9
+                            budgetChangeRate: -8.2,
+                            status: '정상'
+                        },
+                        { 
+                            name: '과기부', 
+                            totalProjects: 2, 
+                            totalBudget: 13.0,
+                            completedProjects: 2,
+                            approvedProjects: 2,
+                            projectChange: 0,
+                            projectChangeRate: 0,
+                            budgetChangeAmount: -13.1, // 13.0 - 26.1
+                            budgetChangeRate: -50.0,
+                            status: '정상'
+                        },
+                        { 
+                            name: '문화부', 
+                            totalProjects: 1, 
+                            totalBudget: 3.5,
+                            completedProjects: 1,
+                            approvedProjects: 1,
+                            projectChange: 1, // 신규
+                            projectChangeRate: 100,
+                            budgetChangeAmount: 3.5, // 신규
+                            budgetChangeRate: 38.0,
+                            status: '정상'
+                        },
+                        { 
+                            name: '농림부', 
+                            totalProjects: 14,
+                            totalBudget: 221.8,
+                            completedProjects: 12,
+                            approvedProjects: 11,
+                            projectChange: 7, // 14-7
+                            projectChangeRate: 100, // (14-7)/7*100
+                            budgetChangeAmount: 80.3, // 221.8 - 141.5
+                            budgetChangeRate: 56.8,
+                            status: '정상'
+                        },
+                        { 
+                            name: '산업부', 
+                            totalProjects: 52,
+                            totalBudget: 2236.6,
+                            completedProjects: 45,
+                            approvedProjects: 41,
+                            projectChange: -3, // 52-55
+                            projectChangeRate: -5.5, // (52-55)/55*100
+                            budgetChangeAmount: 18.6, // 2236.6 - 2218.0
+                            budgetChangeRate: 0.9,
+                            status: '주의'
+                        },
+                        { 
+                            name: '보건복지부', 
+                            totalProjects: 0, 
+                            totalBudget: 0,
+                            completedProjects: 0,
+                            approvedProjects: 0,
+                            projectChange: -2,
+                            projectChangeRate: -100,
+                            budgetChangeAmount: -7.2,
+                            budgetChangeRate: -100,
+                            status: '해당없음'
+                        },
+                        { 
+                            name: '환경부', 
+                            totalProjects: 26,
+                            totalBudget: 4364.3,
+                            completedProjects: 24,
+                            approvedProjects: 24,
+                            projectChange: 7, // 26-19
+                            projectChangeRate: 36.8, // (26-19)/19*100
+                            budgetChangeAmount: 185.8, // 4364.3 - 4178.5
+                            budgetChangeRate: 4.6,
+                            status: '정상'
+                        },
+                        { 
+                            name: '국토부', 
+                            totalProjects: 27,
+                            totalBudget: 492.5,
+                            completedProjects: 23,
+                            approvedProjects: 21,
+                            projectChange: 12, // 27-15
+                            projectChangeRate: 80.0, // (27-15)/15*100
+                            budgetChangeAmount: 176.9, // 492.5 - 315.6
+                            budgetChangeRate: 55.8,
+                            status: '정상'
+                        },
+                        { 
+                            name: '해수부', 
+                            totalProjects: 24,
+                            totalBudget: 451.9,
+                            completedProjects: 21,
+                            approvedProjects: 19,
+                            projectChange: -4, // 24-28
+                            projectChangeRate: -14.3, // (24-28)/28*100
+                            budgetChangeAmount: 107.5, // 451.9 - 344.4
+                            budgetChangeRate: 31.2,
+                            status: '정상'
+                        },
+                        { 
+                            name: '중기부', 
+                            totalProjects: 6,
+                            totalBudget: 961.6,
+                            completedProjects: 4,
+                            approvedProjects: 3,
+                            projectChange: 6, // 신규 확대
+                            projectChangeRate: 150, // 대폭 증가
+                            budgetChangeAmount: 961.6, // 대폭 증가
+                            budgetChangeRate: 125.4,
+                            status: '지연'
+                        }
+                    ]
+                });
+                
+                // 필터링된 부처 데이터
+                const getFilteredMinistryData = computed(() => {
+                    return ministryData.value[selectedYear.value] || [];
+                });
+                
+                // 연도별 비교 데이터 - 실제 데이터
+                const yearlyComparison = ref([
+                    { year: 2023, budget: 5890, fund: 3680, projects: 267, reduction: 423 },
+                    { year: 2024, budget: 6637, fund: 4241, projects: 294, reduction: 487 },
+                    { year: 2025, budget: 7436, fund: 4617, projects: 311, reduction: 520 }
+                ]);
+                
+                // 상태에 따른 CSS 클래스
+                const getStatusClass = (status) => {
+                    const statusMap = {
+                        '정상': 'status-indicator status-normal',
+                        '주의': 'status-indicator status-warning',
+                        '지연': 'status-indicator status-critical',
+                        '해당없음': 'status-indicator status-normal'
+                    };
+                    return statusMap[status] || 'status-indicator status-normal';
+                };
+                
+                // Excel 내보내기
+                const exportData = () => {
+                    alert(`${selectedYear.value}년 ${viewType.value === 'budget' ? '예산' : viewType.value === 'fund' ? '기금' : '통합'} 현황을 Excel로 내보냅니다.`);
+                };
+                
+                // 진행 현황 통계 추가
+                const progressStats = ref({
+                    completed: 285,    // 작성완료
+                    reviewed: 259,     // 검토완료 (정상)
+                    inReview: 26,      // 검토중
+                    pending: 0         // 미제출
+                });
+
+                // 부처별 분포 데이터 추가
+                const ministryDistribution = ref([
+                    { name: '교육부', projects: 136, percentage: 43.7 },
+                    { name: '산업부', projects: 52, percentage: 16.7 },
+                    { name: '국토부', projects: 27, percentage: 8.7 },
+                    { name: '환경부', projects: 26, percentage: 8.4 },
+                    { name: '해수부', projects: 24, percentage: 7.7 },
+                    { name: '농림부', projects: 14, percentage: 4.5 },
+                    { name: '중기부', projects: 6, percentage: 1.9 },
+                    { name: '과기부', projects: 2, percentage: 0.6 },
+                    { name: '문화부', projects: 1, percentage: 0.3 },
+                    { name: '기타', projects: 23, percentage: 7.4 }
+                ]);
+
+                // 차트 초기화 - 개선된 버전
+                onMounted(() => {
+                    // 전체 제출 진행 현황 차트 (기존과 동일)
+                    const progressCtx = document.getElementById('progressChart').getContext('2d');
+                    new Chart(progressCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['작성완료', '검토완료', '검토중', '미제출'],
+                            datasets: [{
+                                data: [
+                                    progressStats.value.completed,
+                                    progressStats.value.reviewed,
+                                    progressStats.value.inReview,
+                                    progressStats.value.pending
+                                ],
+                                backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#e5e7eb'],
+                                borderWidth: 3,
+                                borderColor: '#ffffff',
+                                cutout: '60%'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                            return `${context.label}: ${context.parsed}개 (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    
+                    // 사업수 증감 차트 - 좁은 폭에 맞게 조정
+                    const projectCompareCtx = document.getElementById('projectCompareChart').getContext('2d');
+                    new Chart(projectCompareCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['2024년', '2025년'],
+                            datasets: [
+                                {
+                                    label: '예산사업',
+                                    data: [122, 151],
+                                    backgroundColor: '#3b82f6'
+                                },
+                                {
+                                    label: '기금사업',
+                                    data: [172, 160],
+                                    backgroundColor: '#10b981'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { stacked: true },
+                                y: { 
+                                    stacked: true,
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: { 
+                                    display: false // 범례 숨김
+                                }
+                            }
+                        }
+                    });
+                    
+                    // 예산액 증감 차트 - 좁은 폭에 맞게 조정
+                    const budgetCompareCtx = document.getElementById('budgetCompareChart').getContext('2d');
+                    new Chart(budgetCompareCtx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['2024년', '2025년'],
+                            datasets: [
+                                {
+                                    label: '예산',
+                                    data: [66.4, 74.4],
+                                    backgroundColor: '#3b82f6'
+                                },
+                                {
+                                    label: '기금',
+                                    data: [42.4, 46.2],
+                                    backgroundColor: '#10b981'
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: { stacked: true },
+                                y: { 
+                                    stacked: true,
+                                    beginAtZero: true
+                                }
+                            },
+                            plugins: {
+                                legend: { 
+                                    display: false // 범례 숨김
+                                }
+                            }
+                        }
+                    });
+                    
+                    // 부처별 사업 분포 차트 - 수치 표시 개선
+                    const ministryCtx = document.getElementById('ministryChart').getContext('2d');
+                    new Chart(ministryCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['교육부', '산업부', '국토부', '환경부', '해수부', '농림부', '기타'],
+                            datasets: [{
+                                data: [136, 52, 27, 26, 24, 14, 32],
+                                backgroundColor: [
+                                    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
+                                    '#8b5cf6', '#06b6d4', '#6b7280'
+                                ],
+                                borderWidth: 2,
+                                borderColor: '#ffffff'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { 
+                                    display: false // 범례 숨김 (옆에 테이블로 표시)
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                            return `${context.label}: ${context.parsed}개 (${percentage}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+                
+                // 공지사항 데이터
+                const notices = ref([
+                    { id: 1, title: '2025년 온실가스감축인지 예산제 시행계획 확정', date: '2024-12-20', priority: 'important' },
+                    { id: 2, title: '교통·시설특별회계 신설에 따른 작성 가이드라인', date: '2024-12-18', priority: 'important' },
+                    { id: 3, title: '특별회계 세부분류 기준 개정 안내', date: '2024-12-15', priority: 'normal' },
+                    { id: 4, title: '2024년 우수 부처 포상 결과 발표', date: '2024-12-12', priority: 'normal' },
+                    { id: 5, title: '25년 1차 검토 일정 사전 안내', date: '2024-12-10', priority: 'normal' }
+                ]);
+                
+                // 자료실 데이터
+                const resources = ref([
+                    { id: 1, title: '2025년 온실가스감축인지 예산제 작성지침', date: '2024-12-20', type: 'PDF' },
+                    { id: 2, title: '특별회계별 세부사업 분류표', date: '2024-12-18', type: 'Excel' },
+                    { id: 3, title: '기금운용계획 작성 매뉴얼', date: '2024-12-15', type: 'PDF' },
+                    { id: 4, title: '탄소중립 기본법 시행령 개정안', date: '2024-12-12', type: 'PDF' },
+                    { id: 5, title: '2024년 성과분석 보고서', date: '2024-12-10', type: 'PDF' }
+                ]);
+                
+                // 공지사항/자료실 관련 함수
+                const viewNotice = (notice) => {
+                    alert(`공지사항 상세보기\n\n제목: ${notice.title}\n작성일: ${notice.date}`);
+                };
+                
+                const viewAllNotices = () => {
+                    alert('공지사항 전체 목록 페이지로 이동합니다.');
+                };
+                
+                const downloadResource = (resource) => {
+                    alert(`자료 다운로드\n\n파일명: ${resource.title}\n형식: ${resource.type}`);
+                };
+                
+                const viewAllResources = () => {
+                    alert('자료실 전체 목록 페이지로 이동합니다.');
+                };
+
+                return {
+                    selectedYear,
+                    viewType,
+                    currentYearStats,
+                    progressStats,
+                    ministryDistribution, // 추가
+                    getFilteredMinistryData,
+                    yearlyComparison,
+                    notices,
+                    resources,
+                    getStatusClass,
+                    exportData,
+                    viewNotice,
+                    viewAllNotices,
+                    downloadResource,
+                    viewAllResources
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html> 

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실가스감축인지 예산제 - 워크플로우 시각화</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .workflow-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .workflow-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .workflow-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .process-flow {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .flow-title {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2d3748;
+        }
+        
+        .rounds-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .round-column {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .round-column.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        
+        .round-column.completed {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .round-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .round-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 4px;
+        }
+        
+        .round-status {
+            font-size: 12px;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .round-status.active { background: #dbeafe; color: #1e40af; }
+        .round-status.completed { background: #dcfce7; color: #166534; }
+        .round-status.pending { background: #f3f4f6; color: #6b7280; }
+        
+        .round-steps {
+            list-style: none;
+        }
+        
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .step-item:last-child {
+            border-bottom: none;
+        }
+        
+        .step-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step-icon.completed {
+            background: #10b981;
+            color: white;
+        }
+        
+        .step-icon.current {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .step-icon.pending {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-name {
+            font-weight: 500;
+            color: #374151;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .step-description {
+            font-size: 11px;
+            color: #6b7280;
+            line-height: 1.3;
+        }
+        
+        .step-time {
+            font-size: 10px;
+            color: #9ca3af;
+            text-align: right;
+        }
+        
+        .explanation-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        
+        .explanation-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .panel-content {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #4a5568;
+        }
+        
+        .process-rule {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px 16px;
+            margin: 12px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .rule-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+        
+        .rule-content {
+            color: #1e3a8a;
+            font-size: 13px;
+        }
+        
+        .live-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            min-width: 250px;
+            z-index: 1000;
+        }
+        
+        .status-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .status-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        @media (max-width: 1024px) {
+            .rounds-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .live-status {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .rounds-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 워크플로우 헤더 -->
+            <div class="workflow-header">
+                <h1 class="workflow-title">🔄 온실가스감축인지 예산제 워크플로우</h1>
+                <p class="workflow-subtitle">1차 → 2차 → 3차 → 4차 진행 과정 및 각 단계별 세부 프로세스</p>
+            </div>
+            
+            <!-- 실시간 현황 위젯 -->
+            <div class="live-status">
+                <div class="status-title">📊 실시간 현황</div>
+                <div class="status-item">
+                    <span class="status-label">현재 차수</span>
+                    <span class="status-value">{{ currentRound }}차</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">현재 단계</span>
+                    <span class="status-value">{{ currentStep }}</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">전체 진행률</span>
+                    <span class="status-value">{{ overallProgress }}%</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">참여 부처</span>
+                    <span class="status-value">{{ totalMinistries }}개</span>
+                </div>
+            </div>
+            
+            <!-- 전체 프로세스 플로우 -->
+            <div class="process-flow">
+                <h2 class="flow-title">🎯 차수별 진행 프로세스</h2>
+                
+                <div class="rounds-container">
+                    <div v-for="round in rounds" :key="round.number" 
+                         class="round-column" 
+                         :class="round.status">
+                        
+                        <div class="round-header">
+                            <div class="round-title">{{ round.number }}차 검토</div>
+                            <div class="round-status" :class="round.status">
+                                {{ getRoundStatusText(round.status) }}
+                            </div>
+                        </div>
+                        
+                        <ul class="round-steps">
+                            <li v-for="step in round.steps" :key="step.id" class="step-item">
+                                <div class="step-icon" :class="step.status">
+                                    {{ step.status === 'completed' ? '✓' : step.status === 'current' ? '●' : '○' }}
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-name">{{ step.name }}</div>
+                                    <div class="step-description">{{ step.description }}</div>
+                                </div>
+                                <div class="step-time">{{ step.duration }}</div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- 프로세스 진행 조건 설명 -->
+                <div style="text-align: center; padding: 20px; background: #fef3c7; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                    <strong style="color: #92400e;">🔄 차수 진행 조건:</strong> 
+                    <span style="color: #78350f;">환경공단 검토 완료 → 수정 필요 시 다음 차수 시작 | 승인 시 프로세스 종료</span>
+                </div>
+            </div>
+            
+            <!-- 상세 설명 패널들 -->
+            <div class="explanation-panels">
+                <!-- 2단계 제출 프로세스 설명 -->
+                <div class="explanation-panel">
+                    <h3 class="panel-title">
+                        📋 2단계 제출 프로세스
+                    </h3>
+                    <div class="panel-content">
+                        <div class="process-rule">
+                            <div class="rule-title">1단계: 세부사업별 제출</div>
+                            <div class="rule-content">
+                                각 담당자가 개별 세부사업을 작성 완료 후 개별적으로 제출합니다.
+                                부처 내에서 세부사업별로 순차적 제출이 가능합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">부처 총괄 검토</div>
+                            <div class="rule-content">
+                                모든 세부사업이 개별 제출되면, 부처 총괄이 내부 검토를 진행합니다.
+                                필요시 부처 내에서 수정 요청이 가능합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">2단계: 부처별 제출</div>
+                            <div class="rule-content">
+                                부처 총괄이 모든 세부사업을 검토 완료 후, 부처 단위로 환경공단에 최종 제출합니다.
+                                이때부터 환경공단 검토 대상이 됩니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 환경공단 검토 프로세스 -->
+                <div class="explanation-panel">
+                    <h3 class="panel-title">
+                        🔍 환경공단 검토 프로세스
+                    </h3>
+                    <div class="panel-content">
+                        <div class="process-rule">
+                            <div class="rule-title">검토 대상</div>
+                            <div class="rule-content">
+                                부처별 제출이 완료된 건만 검토 진행합니다.
+                                개별 세부사업이 아닌 부처 단위로 검토합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">검토 결과</div>
+                            <div class="rule-content">
+                                <strong>승인:</strong> 모든 기준 충족 시 해당 부처는 프로세스 완료<br>
+                                <strong>수정 필요:</strong> 차수를 증가시켜 재작성 요청
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">피드백 전달</div>
+                            <div class="rule-content">
+                                수정이 필요한 세부사업별로 구체적인 수정 방향을 제시합니다.
+                                부처는 해당 세부사업만 선별적으로 재작성 가능합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 마감 관리 방식 -->
+                <div class="explanation-panel">
+                    <h3 class="panel-title">
+                        ⏰ 마감 관리 방식
+                    </h3>
+                    <div class="panel-content">
+                        <div class="process-rule">
+                            <div class="rule-title">차수별 미리 생성</div>
+                            <div class="rule-content">
+                                1차~4차까지 일정을 미리 수립하여 부처의 예측 가능성을 보장합니다.
+                                각 차수별로 작성 기간과 검토 기간을 명확히 구분합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">유연한 조정</div>
+                            <div class="rule-content">
+                                필요시 관리자가 마감일을 연장하거나 차수를 조기 종료할 수 있습니다.
+                                부처별 진행 상황에 따라 개별 독촉이나 지원이 가능합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">자동 알림</div>
+                            <div class="rule-content">
+                                마감일 임박, 차수 시작, 검토 완료 등 주요 시점에 자동 알림이 발송됩니다.
+                                이메일, SMS, 시스템 푸시 등 다양한 채널을 활용합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 예외 상황 처리 -->
+                <div class="explanation-panel">
+                    <h3 class="panel-title">
+                        ⚡ 예외 상황 처리
+                    </h3>
+                    <div class="panel-content">
+                        <div class="process-rule">
+                            <div class="rule-title">부분 승인</div>
+                            <div class="rule-content">
+                                일부 세부사업만 승인되고 일부는 수정이 필요한 경우,
+                                수정이 필요한 세부사업만 다음 차수에서 재작성합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">지연 처리</div>
+                            <div class="rule-content">
+                                마감일을 초과한 부처에 대해서는 자동 독촉 알림이 발송되며,
+                                관리자가 개별 연락을 통해 지원합니다.
+                            </div>
+                        </div>
+                        
+                        <div class="process-rule">
+                            <div class="rule-title">시스템 장애</div>
+                            <div class="rule-content">
+                                시스템 장애 발생 시 자동으로 마감일이 연장되며,
+                                모든 사용자에게 상황 알림이 즉시 전파됩니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    currentRound: 2,
+                    currentStep: '세부사업 제출',
+                    overallProgress: 45,
+                    totalMinistries: 8,
+                    
+                    rounds: [
+                        {
+                            number: 1,
+                            status: 'completed',
+                            steps: [
+                                { id: 1, name: '작성 시작', description: '차수 시작 알림 발송', duration: '1일', status: 'completed' },
+                                { id: 2, name: '세부사업 작성', description: '각 담당자별 세부사업 분석', duration: '2주', status: 'completed' },
+                                { id: 3, name: '세부사업 제출', description: '개별 세부사업 단위 제출', duration: '3일', status: 'completed' },
+                                { id: 4, name: '부처 검토', description: '부처 총괄 내부 검토', duration: '3일', status: 'completed' },
+                                { id: 5, name: '부처 제출', description: '부처 단위 환경공단 제출', duration: '1일', status: 'completed' },
+                                { id: 6, name: '환경공단 검토', description: '부처별 제출 건 전문 검토', duration: '1주', status: 'completed' },
+                                { id: 7, name: '검토 결과', description: '검토 완료 및 피드백', duration: '1일', status: 'completed' }
+                            ]
+                        },
+                        {
+                            number: 2,
+                            status: 'active',
+                            steps: [
+                                { id: 8, name: '재작성 시작', description: '1차 피드백 반영', duration: '1일', status: 'completed' },
+                                { id: 9, name: '수정 작성', description: '피드백 받은 세부사업만 수정', duration: '1주', status: 'completed' },
+                                { id: 10, name: '세부사업 재제출', description: '수정 완료된 세부사업 재제출', duration: '2일', status: 'current' },
+                                { id: 11, name: '부처 재검토', description: '부처 총괄 수정사항 재검토', duration: '2일', status: 'pending' },
+                                { id: 12, name: '부처 재제출', description: '부처 단위 환경공단 재제출', duration: '1일', status: 'pending' },
+                                { id: 13, name: '2차 검토', description: '환경공단 2차 검토 진행', duration: '5일', status: 'pending' },
+                                { id: 14, name: '2차 결과', description: '2차 검토 결과', duration: '1일', status: 'pending' }
+                            ]
+                        },
+                        {
+                            number: 3,
+                            status: 'pending',
+                            steps: [
+                                { id: 15, name: '3차 시작', description: '2차 피드백 반영', duration: '1일', status: 'pending' },
+                                { id: 16, name: '3차 수정', description: '세밀한 수정 및 보완', duration: '5일', status: 'pending' },
+                                { id: 17, name: '3차 제출', description: '개별 → 부처별 순차 제출', duration: '2일', status: 'pending' },
+                                { id: 18, name: '3차 검토', description: '환경공단 3차 검토', duration: '3일', status: 'pending' },
+                                { id: 19, name: '3차 결과', description: '3차 검토 결과', duration: '1일', status: 'pending' }
+                            ]
+                        },
+                        {
+                            number: 4,
+                            status: 'pending',
+                            steps: [
+                                { id: 20, name: '최종 수정', description: '4차 최종 수정', duration: '3일', status: 'pending' },
+                                { id: 21, name: '최종 제출', description: '최종 제출 및 검토', duration: '2일', status: 'pending' },
+                                { id: 22, name: '최종 승인', description: '최종 승인 및 완료', duration: '2일', status: 'pending' }
+                            ]
+                        }
+                    ]
+                }
+            },
+            
+            methods: {
+                getRoundStatusText(status) {
+                    const statusMap = {
+                        'completed': '완료',
+                        'active': '진행중',
+                        'pending': '대기'
+                    };
+                    return statusMap[status] || status;
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
