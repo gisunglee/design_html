@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실가스감축인지 예산제 운영시스템 - 로그인</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* 공공 시스템에 맞는 신뢰성 있는 디자인 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .login-container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        /* 왼쪽 정보 섹션 */
+        .info-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1);
+        }
+        
+        .system-title {
+            font-size: 28px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .system-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        
+        .auth-info {
+            margin-bottom: 32px;
+        }
+        
+        .auth-info h3 {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .auth-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .auth-type {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-type.gpki {
+            border-color: #f59e0b;
+            background: #fef3c7;
+        }
+        
+        .auth-type.normal {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+        
+        .auth-type h4 {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .auth-type.gpki h4 {
+            color: #92400e;
+        }
+        
+        .auth-type.normal h4 {
+            color: #065f46;
+        }
+        
+        .auth-type ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .auth-type li {
+            font-size: 12px;
+            padding: 2px 0;
+            color: #6b7280;
+        }
+        
+        .legal-notice {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        
+        .legal-notice h4 {
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .legal-notice p {
+            color: #78350f;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        
+        /* 오른쪽 로그인 폼 */
+        .login-form-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.15);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .login-header h2 {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .login-header p {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        /* 인증 방식 선택 탭 */
+        .auth-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 12px 16px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+        }
+        
+        .auth-tab.active {
+            background: #1e40af;
+            color: white;
+        }
+        
+        .auth-tab:hover:not(.active) {
+            background: #e5e7eb;
+        }
+        
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+        
+        /* 로그인 버튼 */
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+        }
+        
+        .login-button:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e2b5c 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+        
+        .login-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* 도움말 링크 */
+        .help-links {
+            text-align: center;
+            margin-top: 24px;
+        }
+        
+        .help-links a {
+            color: #1e40af;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 8px;
+            transition: color 0.2s;
+        }
+        
+        .help-links a:hover {
+            color: #1e3a8a;
+            text-decoration: underline;
+        }
+        
+        /* SMS 인증 관련 */
+        .sms-verification {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .verify-button {
+            padding: 12px 16px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        
+        .verify-button:hover {
+            background: #059669;
+        }
+        
+        .verify-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        /* GPKI 안내 */
+        .gpki-info {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #92400e;
+            line-height: 1.4;
+        }
+        
+        /* 푸터 */
+        .login-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e293b;
+            color: #94a3b8;
+            text-align: center;
+            padding: 16px;
+            font-size: 12px;
+        }
+        
+        .login-footer a {
+            color: #94a3b8;
+            text-decoration: none;
+            margin: 0 12px;
+        }
+        
+        .login-footer a:hover {
+            color: #e2e8f0;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 16px;
+                max-width: 100%;
+            }
+            
+            .info-section,
+            .login-form-section {
+                padding: 24px;
+            }
+            
+            .auth-types {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            
+            .system-title {
+                font-size: 24px;
+            }
+            
+            .login-header h2 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="login-container">
+            <!-- 왼쪽 정보 섹션 -->
+            <div class="info-section">
+                <h1 class="system-title">온실가스감축인지 예산제 운영시스템</h1>
+                <p class="system-subtitle">Greenhouse Gas Reduction Budget Review System</p>
+                
+                <div class="auth-info">
+                    <h3>🔐 로그인 방식 안내</h3>
+                    <div class="auth-types">
+                        <div class="auth-type normal">
+                            <h4>🔑 일반 로그인 (기본)</h4>
+                            <ul>
+                                <li>• 모든 회원 유형</li>
+                                <li>• ID/비밀번호 방식</li>
+                                <li>• 회원가입 후 이용 가능</li>
+                            </ul>
+                        </div>
+                        <div class="auth-type gpki">
+                            <h4>🔐 GPKI 인증 (선택)</h4>
+                            <ul>
+                                <li>• 행정기관 담당자</li>
+                                <li>• 보안 강화 로그인</li>
+                                <li>• 공인인증서 필요</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="auth-info">
+                    <h3>📋 주요 기능</h3>
+                    <div style="background: #f8fafc; border-radius: 8px; padding: 20px; margin-top: 16px;">
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #1e40af;">📝</span>
+                                <span style="font-size: 14px;">온실가스감축인지 예산서 작성</span>
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #1e40af;">🔍</span>
+                                <span style="font-size: 14px;">전문적 검토 및 피드백</span>
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #1e40af;">📊</span>
+                                <span style="font-size: 14px;">진행 현황 실시간 모니터링</span>
+                            </li>
+                            <li style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span style="color: #1e40af;">💬</span>
+                                <span style="font-size: 14px;">컨설팅 및 기술 지원</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="legal-notice">
+                    <h4>⚖️ 법적 근거</h4>
+                    <p>
+                        본 시스템은 「기후위기 대응을 위한 탄소중립·녹색성장 기본법」 제27조 및 
+                        「국가재정법」 제68조의3에 근거하여 운영됩니다.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 오른쪽 로그인 폼 -->
+            <div class="login-form-section">
+                <div class="login-header">
+                    <h2>로그인</h2>
+                    <p>시스템 이용을 위해 로그인해주세요</p>
+                </div>
+                
+                <!-- 인증 방식 선택 탭 -->
+                <div class="auth-tabs">
+                    <button 
+                        class="auth-tab" 
+                        :class="{ active: authMethod === 'gpki' }"
+                        @click="authMethod = 'gpki'"
+                    >
+                        🔐 GPKI 인증
+                    </button>
+                    <button 
+                        class="auth-tab" 
+                        :class="{ active: authMethod === 'sms' }"
+                        @click="authMethod = 'sms'"
+                    >
+                        📱 SMS 인증
+                    </button>
+                </div>
+                
+                <!-- GPKI 인증 폼 -->
+                <form v-if="authMethod === 'gpki'" @submit.prevent="loginWithGPKI">
+                    <div class="form-group">
+                        <label class="form-label">기관 선택</label>
+                        <select class="form-select" v-model="gpkiForm.agency" required>
+                            <option value="">기관을 선택해주세요</option>
+                            <option value="moef">기획재정부</option>
+                            <option value="me">환경부</option>
+                            <option value="moel">고용노동부</option>
+                            <option value="motie">산업통상자원부</option>
+                            <option value="molit">국토교통부</option>
+                            <option value="mafra">농림축산식품부</option>
+                            <option value="mof">해양수산부</option>
+                            <option value="mois">행정안전부</option>
+                            <option value="other">기타 행정기관</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">사용자 ID</label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            v-model="gpkiForm.userId"
+                            placeholder="사용자 ID를 입력해주세요"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="gpki-info">
+                        <strong>📋 GPKI 인증 안내</strong><br>
+                        • GPKI 인증서가 설치된 PC에서만 로그인 가능합니다.<br>
+                        • 로그인 시 인증서 선택 창이 자동으로 표시됩니다.<br>
+                        • 인증서 관련 문의: 각 기관 정보보안 담당자
+                    </div>
+                    
+                    <button type="submit" class="login-button" :disabled="!gpkiForm.agency || !gpkiForm.userId">
+                        🔐 GPKI 인증 로그인
+                    </button>
+                </form>
+                
+                <!-- SMS 인증 폼 -->
+                <form v-if="authMethod === 'sms'" @submit.prevent="loginWithSMS">
+                    <div class="form-group">
+                        <label class="form-label">사용자 유형</label>
+                        <select class="form-select" v-model="smsForm.userType" required>
+                            <option value="">사용자 유형을 선택해주세요</option>
+                            <option value="advisor">기술자문위원</option>
+                            <option value="keco">한국환경공단 담당자</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">사용자 ID</label>
+                        <input 
+                            type="text" 
+                            class="form-input" 
+                            v-model="smsForm.userId"
+                            placeholder="사용자 ID를 입력해주세요"
+                            required
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">휴대폰 번호</label>
+                        <input 
+                            type="tel" 
+                            class="form-input" 
+                            v-model="smsForm.phoneNumber"
+                            placeholder="010-1234-5678"
+                            pattern="[0-9]{3}-[0-9]{4}-[0-9]{4}"
+                            required
+                        >
+                        <div class="sms-verification">
+                            <input 
+                                type="text" 
+                                class="form-input" 
+                                v-model="smsForm.verificationCode"
+                                placeholder="인증번호 6자리"
+                                maxlength="6"
+                                :disabled="!smsForm.phoneNumber || !smsCodeSent"
+                            >
+                            <button 
+                                type="button" 
+                                class="verify-button"
+                                @click="sendSMSCode"
+                                :disabled="!smsForm.phoneNumber || smsCodeSent"
+                            >
+                                {{ smsCodeSent ? `재전송 (${smsTimer})` : '인증번호 전송' }}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button 
+                        type="submit" 
+                        class="login-button" 
+                        :disabled="!smsForm.userType || !smsForm.userId || !smsForm.verificationCode || smsForm.verificationCode.length !== 6"
+                    >
+                        📱 SMS 인증 로그인
+                    </button>
+                </form>
+                
+                <!-- 도움말 링크 -->
+                <div class="help-links">
+                    <a href="#" @click.prevent="showHelp('register')">회원가입</a>
+                    <a href="#" @click.prevent="showHelp('password')">비밀번호 찾기</a>
+                    <a href="#" @click.prevent="showHelp('contact')">시스템 문의</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 푸터 -->
+        <div class="login-footer">
+            <a href="#" target="_blank">개인정보처리방침</a>
+            <a href="#" target="_blank">이용약관</a>
+            <a href="#" target="_blank">시스템 가이드</a>
+            <span style="margin: 0 12px;">|</span>
+            <span>© 2024 Korea Environment Corporation. All rights reserved.</span>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 인증 방식 (gpki 또는 sms)
+                    authMethod: 'gpki',
+                    
+                    // GPKI 폼 데이터
+                    gpkiForm: {
+                        agency: '',
+                        userId: ''
+                    },
+                    
+                    // SMS 폼 데이터
+                    smsForm: {
+                        userType: '',
+                        userId: '',
+                        phoneNumber: '',
+                        verificationCode: ''
+                    },
+                    
+                    // SMS 관련 상태
+                    smsCodeSent: false,
+                    smsTimer: 0,
+                    smsInterval: null
+                }
+            },
+            
+            methods: {
+                // GPKI 로그인
+                async loginWithGPKI() {
+                    try {
+                        this.showToast('GPKI 인증서를 확인하고 있습니다...');
+                        
+                        // 실제로는 GPKI 인증 모듈 호출
+                        await this.simulateGPKIAuth();
+                        
+                        this.showToast('로그인 성공! 메인 화면으로 이동합니다.');
+                        
+                        // 실제로는 메인 페이지로 리다이렉트
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+                        
+                    } catch (error) {
+                        this.showToast('GPKI 인증에 실패했습니다. 인증서를 확인해주세요.', 'error');
+                    }
+                },
+                
+                // SMS 로그인
+                async loginWithSMS() {
+                    try {
+                        this.showToast('SMS 인증을 확인하고 있습니다...');
+                        
+                        // 실제로는 SMS 인증 확인 API 호출
+                        await this.verifySMSCode();
+                        
+                        this.showToast('로그인 성공! 메인 화면으로 이동합니다.');
+                        
+                        // 실제로는 메인 페이지로 리다이렉트
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+                        
+                    } catch (error) {
+                        this.showToast('인증번호가 올바르지 않습니다.', 'error');
+                    }
+                },
+                
+                // SMS 인증번호 전송
+                async sendSMSCode() {
+                    try {
+                        this.showToast('인증번호를 전송하고 있습니다...');
+                        
+                        // 실제로는 SMS 전송 API 호출
+                        await this.simulateSMSSend();
+                        
+                        this.smsCodeSent = true;
+                        this.smsTimer = 180; // 3분
+                        
+                        // 타이머 시작
+                        this.smsInterval = setInterval(() => {
+                            this.smsTimer--;
+                            if (this.smsTimer <= 0) {
+                                this.smsCodeSent = false;
+                                clearInterval(this.smsInterval);
+                            }
+                        }, 1000);
+                        
+                        this.showToast('인증번호가 전송되었습니다. (유효시간: 3분)');
+                        
+                    } catch (error) {
+                        this.showToast('인증번호 전송에 실패했습니다.', 'error');
+                    }
+                },
+                
+                // 도움말 표시
+                showHelp(type) {
+                    const helpMessages = {
+                        register: '회원가입은 시스템 관리자에게 문의해주세요.\n문의: support@keco.or.kr',
+                        password: '비밀번호 찾기는 각 기관 담당자에게 문의해주세요.',
+                        contact: '시스템 문의\n전화: 042-123-4567\n이메일: support@keco.or.kr'
+                    };
+                    
+                    alert(helpMessages[type] || '준비 중인 기능입니다.');
+                },
+                
+                // 시뮬레이션 함수들
+                async simulateGPKIAuth() {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            // 90% 확률로 성공
+                            if (Math.random() > 0.1) {
+                                resolve();
+                            } else {
+                                reject(new Error('GPKI 인증 실패'));
+                            }
+                        }, 2000);
+                    });
+                },
+                
+                async simulateSMSSend() {
+                    return new Promise((resolve) => {
+                        setTimeout(resolve, 1000);
+                    });
+                },
+                
+                async verifySMSCode() {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            // 인증번호가 "123456"이면 성공
+                            if (this.smsForm.verificationCode === '123456') {
+                                resolve();
+                            } else {
+                                reject(new Error('잘못된 인증번호'));
+                            }
+                        }, 1000);
+                    });
+                },
+                
+                // 토스트 알림
+                showToast(message, type = 'info') {
+                    // 실제로는 별도 토스트 컴포넌트 사용
+                    alert(message);
+                }
+            },
+            
+            // 컴포넌트 해제 시 타이머 정리
+            beforeUnmount() {
+                if (this.smsInterval) {
+                    clearInterval(this.smsInterval);
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 

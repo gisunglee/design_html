@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실가스감축인지 예산제 - 부처 작성 시스템</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* 관공서 특성에 맞는 심플하고 실용적인 디자인 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 심플한 헤더 */
+        .header {
+            background: #fff;
+            border-bottom: 3px solid #2563eb;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .header-info {
+            font-size: 14px;
+            color: #6b7280;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .current-round {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        /* 간단한 진행 상황 표시 */
+        .progress-section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .progress-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        
+        .progress-steps {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .step.completed {
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 500;
+        }
+        
+        .step.current {
+            background: #dbeafe;
+            color: #1e40af;
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f3f4f6;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #10b981;
+            transition: width 0.3s ease;
+        }
+        
+        /* 테이블 형태의 세부사업 목록 - 관공서 스타일 */
+        .projects-section {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .section-header {
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 20px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #374151;
+        }
+        
+        .projects-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .projects-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        
+        .projects-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+        
+        .projects-table tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .project-name {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+        
+        .project-code {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            min-width: 60px;
+            display: inline-block;
+        }
+        
+        .status-badge.draft {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .status-badge.writing {
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fed7aa;
+        }
+        
+        .status-badge.submitted {
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .status-badge.feedback {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .progress-cell {
+            text-align: center;
+        }
+        
+        .progress-text {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .last-modified {
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        /* 심플한 버튼 */
+        .btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            background: #fff;
+            color: #374151;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+            border-color: #2563eb;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        
+        .btn-success {
+            background: #059669;
+            color: #fff;
+            border-color: #059669;
+        }
+        
+        .btn-success:hover {
+            background: #047857;
+            border-color: #047857;
+        }
+        
+        .btn-warning {
+            background: #d97706;
+            color: #fff;
+            border-color: #d97706;
+        }
+        
+        .btn-warning:hover {
+            background: #b45309;
+            border-color: #b45309;
+        }
+        
+        .btn:disabled {
+            background: #f9fafb;
+            color: #9ca3af;
+            border-color: #e5e7eb;
+            cursor: not-allowed;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 4px;
+        }
+        
+        /* 부처 제출 영역 */
+        .ministry-submission {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            padding: 20px;
+        }
+        
+        .ministry-submission.ready {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+        
+        .submission-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .submission-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .submission-status {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .checklist {
+            margin-bottom: 20px;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .checklist-item:last-child {
+            border-bottom: none;
+        }
+        
+        .checklist-icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .checklist-icon.completed {
+            background: #10b981;
+            color: #fff;
+        }
+        
+        .checklist-icon.pending {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .checklist-text {
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .checklist-text.completed {
+            color: #059669;
+            font-weight: 500;
+        }
+        
+        /* 피드백 영역 */
+        .feedback-box {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        
+        .feedback-title {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        
+        .feedback-content {
+            font-size: 12px;
+            color: #78350f;
+            line-height: 1.4;
+        }
+        
+        /* 검토 결과 영역 */
+        .review-result {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+        
+        .review-title {
+            font-weight: bold;
+            color: #0c4a6e;
+            margin-bottom: 8px;
+        }
+        
+        .review-content {
+            font-size: 14px;
+            color: #075985;
+            line-height: 1.5;
+        }
+        
+        .review-actions {
+            margin-top: 12px;
+            text-align: center;
+        }
+        
+        /* 반응형 */
+        @media (max-width: 768px) {
+            .header-info {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+            
+            .progress-steps {
+                flex-direction: column;
+                gap: 4px;
+            }
+            
+            .projects-table {
+                font-size: 12px;
+            }
+            
+            .projects-table th,
+            .projects-table td {
+                padding: 8px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 심플한 헤더 -->
+            <div class="header">
+                <h1 class="header-title">{{ ministryInfo.name }} - 온실가스감축인지 예산제 작성시스템</h1>
+                <div class="header-info">
+                    <span>담당자: {{ ministryInfo.manager }} | 총 {{ totalProjects }}개 세부사업</span>
+                    <div class="current-round">{{ currentRound }}차 {{ currentPhase }}</div>
+                </div>
+            </div>
+            
+            <!-- 간단한 진행 상황 -->
+            <div class="progress-section">
+                <div class="progress-title">{{ currentRound }}차 진행 상황</div>
+                <div class="progress-steps">
+                    <div class="step completed">작성시작</div>
+                    <div class="step" :class="allProjectsSubmitted ? 'completed' : 'current'">세부사업 제출</div>
+                    <div class="step" :class="ministrySubmissionStatus === 'submitted' ? 'completed' : ''">부처 제출</div>
+                    <div class="step" :class="reviewResult ? 'completed' : ''">환경공단 검토</div>
+                    <div class="step">완료</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" :style="{ width: overallProgress + '%' }"></div>
+                </div>
+                <div style="text-align: center; margin-top: 8px; font-size: 13px; color: #6b7280;">
+                    전체 진행률: {{ overallProgress }}%
+                </div>
+            </div>
+            
+            <!-- 세부사업 목록 테이블 -->
+            <div class="projects-section">
+                <div class="section-header">
+                    <h2 class="section-title">세부사업 작성 현황</h2>
+                </div>
+                
+                <table class="projects-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 30%;">세부사업명</th>
+                            <th style="width: 15%;">담당자</th>
+                            <th style="width: 10%;">상태</th>
+                            <th style="width: 10%;">완성도</th>
+                            <th style="width: 15%;">최종 수정</th>
+                            <th style="width: 20%;">관리</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="project in projects" :key="project.id">
+                            <td>
+                                <div class="project-name">{{ project.name }}</div>
+                                <div class="project-code">사업코드: {{ project.code }}</div>
+                            </td>
+                            <td>{{ project.manager }}</td>
+                            <td>
+                                <span class="status-badge" :class="project.status">
+                                    {{ getProjectStatusText(project.status) }}
+                                </span>
+                            </td>
+                            <td class="progress-cell">
+                                <div class="progress-text">{{ project.progress }}%</div>
+                            </td>
+                            <td>
+                                <div class="last-modified">{{ project.lastModified || '미작성' }}</div>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button 
+                                        @click="editProject(project)" 
+                                        class="btn btn-primary"
+                                        :disabled="!canEditProject(project)"
+                                    >
+                                        작성
+                                    </button>
+                                    
+                                    <button 
+                                        @click="submitProject(project)" 
+                                        class="btn btn-success"
+                                        :disabled="!canSubmitProject(project)"
+                                        v-if="project.status !== 'submitted'"
+                                    >
+                                        제출
+                                    </button>
+                                    
+                                    <button 
+                                        @click="withdrawProject(project)" 
+                                        class="btn btn-warning"
+                                        v-if="project.status === 'submitted' && canWithdrawProject(project)"
+                                    >
+                                        취소
+                                    </button>
+                                </div>
+                                
+                                <!-- 피드백 표시 -->
+                                <div v-if="project.feedback" class="feedback-box">
+                                    <div class="feedback-title">검토 의견</div>
+                                    <div class="feedback-content">{{ project.feedback }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 부처 제출 영역 -->
+            <div class="ministry-submission" :class="{ ready: ministrySubmissionStatus === 'ready' }">
+                <div class="submission-header">
+                    <h2 class="submission-title">부처별 최종 제출</h2>
+                    <div class="submission-status">{{ getMinistrySubmissionText() }}</div>
+                </div>
+                
+                <!-- 제출 체크리스트 -->
+                <div class="checklist">
+                    <div class="checklist-item">
+                        <div class="checklist-icon" :class="allProjectsSubmitted ? 'completed' : 'pending'">
+                            {{ allProjectsSubmitted ? '✓' : '○' }}
+                        </div>
+                        <div class="checklist-text" :class="{ completed: allProjectsSubmitted }">
+                            모든 세부사업 제출 완료 ({{ submittedProjectsCount }}/{{ totalProjects }})
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <div class="checklist-icon" :class="isMinistryReviewed ? 'completed' : 'pending'">
+                            {{ isMinistryReviewed ? '✓' : '○' }}
+                        </div>
+                        <div class="checklist-text" :class="{ completed: isMinistryReviewed }">
+                            부처 총괄 내부 검토 완료
+                        </div>
+                    </div>
+                    
+                    <div class="checklist-item">
+                        <div class="checklist-icon" :class="ministrySubmissionStatus === 'submitted' ? 'completed' : 'pending'">
+                            {{ ministrySubmissionStatus === 'submitted' ? '✓' : '○' }}
+                        </div>
+                        <div class="checklist-text" :class="{ completed: ministrySubmissionStatus === 'submitted' }">
+                            환경공단 최종 제출 완료
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 부처 제출 버튼 -->
+                <div style="text-align: center;">
+                    <button 
+                        @click="toggleMinistrySubmission" 
+                        class="btn"
+                        :class="getMinistrySubmissionButtonClass()"
+                        :disabled="!canToggleMinistrySubmission()"
+                        style="padding: 12px 24px; font-size: 14px; font-weight: bold;"
+                    >
+                        {{ getMinistrySubmissionButtonText() }}
+                    </button>
+                </div>
+                
+                <!-- 환경공단 검토 결과 -->
+                <div v-if="ministrySubmissionStatus === 'submitted' && reviewResult" class="review-result">
+                    <div class="review-title">환경공단 검토 결과</div>
+                    <div class="review-content">
+                        <div style="margin-bottom: 8px;">
+                            <strong>검토 상태:</strong> 
+                            <span :style="{ color: reviewResult.needsRevision ? '#dc2626' : '#059669', fontWeight: 'bold' }">
+                                {{ reviewResult.needsRevision ? '수정 필요' : '승인' }}
+                            </span>
+                        </div>
+                        <div v-if="reviewResult.needsRevision">
+                            <strong>수정 요청 사항:</strong><br>
+                            {{ reviewResult.feedback }}
+                        </div>
+                    </div>
+                    
+                    <div v-if="reviewResult.needsRevision" class="review-actions">
+                        <button @click="startNextRound" class="btn btn-warning">
+                            {{ getNextRoundNumber() }}차 재작성 시작
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 부처 정보
+                    ministryInfo: {
+                        name: '환경부',
+                        manager: '김환경',
+                        id: 1
+                    },
+                    
+                    // 현재 차수 및 단계
+                    currentRound: 1,
+                    currentPhase: '작성 기간',
+                    
+                    // 부처 제출 상태
+                    ministrySubmissionStatus: 'waiting', // waiting, ready, submitted
+                    isMinistryReviewed: false,
+                    
+                    // 환경공단 검토 결과
+                    reviewResult: null,
+                    
+                    // 세부사업 목록
+                    projects: [
+                        {
+                            id: 1,
+                            name: '온실가스 배출권거래제 운영',
+                            code: 'ENV-2024-001',
+                            manager: '김담당',
+                            status: 'submitted',
+                            progress: 100,
+                            lastModified: '2024-12-20 14:30',
+                            feedback: null
+                        },
+                        {
+                            id: 2,
+                            name: '친환경차 보급 확산',
+                            code: 'ENV-2024-002',
+                            manager: '이담당',
+                            status: 'submitted',
+                            progress: 100,
+                            lastModified: '2024-12-20 16:45',
+                            feedback: null
+                        },
+                        {
+                            id: 3,
+                            name: '재생에너지 인증제도 운영',
+                            code: 'ENV-2024-003',
+                            manager: '박담당',
+                            status: 'writing',
+                            progress: 75,
+                            lastModified: '2024-12-20 18:20',
+                            feedback: null
+                        },
+                        {
+                            id: 4,
+                            name: '환경영향평가 개선',
+                            code: 'ENV-2024-004',
+                            manager: '최담당',
+                            status: 'draft',
+                            progress: 30,
+                            lastModified: '2024-12-19 10:15',
+                            feedback: null
+                        },
+                        {
+                            id: 5,
+                            name: '탄소중립 기술개발',
+                            code: 'ENV-2024-005',
+                            manager: '정담당',
+                            status: 'feedback',
+                            progress: 90,
+                            lastModified: '2024-12-20 09:40',
+                            feedback: '예산 산정 근거가 불충분합니다. 세부 내역을 보완해 주세요.'
+                        }
+                    ]
+                }
+            },
+            
+            computed: {
+                // 전체 세부사업 수
+                totalProjects() {
+                    return this.projects.length;
+                },
+                
+                // 제출 완료된 세부사업 수
+                submittedProjectsCount() {
+                    return this.projects.filter(p => p.status === 'submitted').length;
+                },
+                
+                // 모든 세부사업이 제출되었는지
+                allProjectsSubmitted() {
+                    return this.submittedProjectsCount === this.totalProjects;
+                },
+                
+                // 전체 진행률
+                overallProgress() {
+                    const totalProgress = this.projects.reduce((sum, project) => sum + project.progress, 0);
+                    return Math.round(totalProgress / this.totalProjects);
+                }
+            },
+            
+            methods: {
+                // 세부사업 작성/수정
+                editProject(project) {
+                    alert(`${project.name} 작성 화면으로 이동합니다.`);
+                    
+                    // 시뮬레이션: 작성 진행
+                    if (project.status === 'draft' || project.status === 'feedback') {
+                        project.status = 'writing';
+                        project.progress = Math.min(project.progress + 20, 95);
+                        project.lastModified = new Date().toLocaleString('ko-KR');
+                    }
+                },
+                
+                // 세부사업 제출
+                submitProject(project) {
+                    if (project.progress < 100) {
+                        alert('작성을 완료한 후 제출해주세요.');
+                        return;
+                    }
+                    
+                    project.status = 'submitted';
+                    project.lastModified = new Date().toLocaleString('ko-KR');
+                    alert(`${project.name}이(가) 제출되었습니다.`);
+                    
+                    this.updateMinistrySubmissionStatus();
+                },
+                
+                // 세부사업 제출 취소
+                withdrawProject(project) {
+                    if (confirm('정말로 제출을 취소하시겠습니까?')) {
+                        project.status = 'writing';
+                        alert(`${project.name}의 제출이 취소되었습니다.`);
+                        this.updateMinistrySubmissionStatus();
+                    }
+                },
+                
+                // 부처별 제출 상태 업데이트
+                updateMinistrySubmissionStatus() {
+                    if (this.allProjectsSubmitted && this.isMinistryReviewed) {
+                        this.ministrySubmissionStatus = 'ready';
+                    } else if (this.ministrySubmissionStatus === 'ready' && !this.allProjectsSubmitted) {
+                        this.ministrySubmissionStatus = 'waiting';
+                    }
+                },
+                
+                // 부처별 제출 토글
+                toggleMinistrySubmission() {
+                    if (this.ministrySubmissionStatus === 'ready') {
+                        if (!this.isMinistryReviewed) {
+                            const confirmed = confirm('부처 내부 검토를 완료하셨습니까?');
+                            if (!confirmed) return;
+                            this.isMinistryReviewed = true;
+                        }
+                        
+                        const finalConfirm = confirm('환경공단에 최종 제출하시겠습니까?');
+                        if (finalConfirm) {
+                            this.ministrySubmissionStatus = 'submitted';
+                            alert('환경공단에 제출되었습니다. 검토 결과를 기다려주세요.');
+                            
+                            // 시뮬레이션: 3초 후 검토 결과
+                            setTimeout(() => {
+                                this.simulateReviewResult();
+                            }, 3000);
+                        }
+                    } else if (this.ministrySubmissionStatus === 'submitted' && !this.reviewResult) {
+                        const confirmed = confirm('제출을 취소하시겠습니까?');
+                        if (confirmed) {
+                            this.ministrySubmissionStatus = 'ready';
+                            alert('제출이 취소되었습니다.');
+                        }
+                    }
+                },
+                
+                // 검토 결과 시뮬레이션
+                simulateReviewResult() {
+                    const needsRevision = Math.random() < 0.7;
+                    
+                    this.reviewResult = {
+                        needsRevision: needsRevision,
+                        feedback: needsRevision ? 
+                            '일부 세부사업의 온실가스 감축 효과 산정 방법을 보완해 주시기 바랍니다.' : 
+                            '모든 검토 기준을 충족합니다. 승인되었습니다.',
+                        reviewedAt: new Date().toLocaleString('ko-KR')
+                    };
+                    
+                    alert(`환경공단 검토가 완료되었습니다. ${needsRevision ? '수정이 필요합니다.' : '승인되었습니다.'}`);
+                },
+                
+                // 다음 차수 시작
+                startNextRound() {
+                    this.currentRound++;
+                    this.currentPhase = '재작성 기간';
+                    
+                    // 수정이 필요한 세부사업들을 feedback 상태로 변경
+                    this.projects.forEach(project => {
+                        if (Math.random() < 0.4) {
+                            project.status = 'feedback';
+                            project.feedback = '이전 검토 의견을 반영하여 수정해 주세요.';
+                        }
+                    });
+                    
+                    // 상태 초기화
+                    this.ministrySubmissionStatus = 'waiting';
+                    this.isMinistryReviewed = false;
+                    this.reviewResult = null;
+                    
+                    alert(`${this.currentRound}차 재작성이 시작되었습니다.`);
+                },
+                
+                // 유틸리티 함수들
+                canEditProject(project) {
+                    return project.status !== 'submitted' || this.currentPhase.includes('재작성');
+                },
+                
+                canSubmitProject(project) {
+                    return project.progress === 100 && project.status !== 'submitted';
+                },
+                
+                canWithdrawProject(project) {
+                    return this.ministrySubmissionStatus !== 'submitted';
+                },
+                
+                canToggleMinistrySubmission() {
+                    return this.ministrySubmissionStatus === 'ready' || 
+                           (this.ministrySubmissionStatus === 'submitted' && !this.reviewResult);
+                },
+                
+                getProjectStatusText(status) {
+                    const statusMap = {
+                        'draft': '미작성',
+                        'writing': '작성중',
+                        'submitted': '제출완료',
+                        'feedback': '수정요청'
+                    };
+                    return statusMap[status] || status;
+                },
+                
+                getMinistrySubmissionText() {
+                    const statusMap = {
+                        'waiting': '세부사업 제출 대기중',
+                        'ready': '부처 제출 준비완료',
+                        'submitted': '환경공단 제출완료'
+                    };
+                    return statusMap[this.ministrySubmissionStatus] || '';
+                },
+                
+                getMinistrySubmissionButtonClass() {
+                    if (this.ministrySubmissionStatus === 'ready') return 'btn-success';
+                    if (this.ministrySubmissionStatus === 'submitted') return 'btn-warning';
+                    return 'btn';
+                },
+                
+                getMinistrySubmissionButtonText() {
+                    if (this.ministrySubmissionStatus === 'ready') return '환경공단에 최종 제출';
+                    if (this.ministrySubmissionStatus === 'submitted' && !this.reviewResult) return '제출 취소';
+                    return '대기중...';
+                },
+                
+                getNextRoundNumber() {
+                    return this.currentRound + 1;
+                }
+            },
+            
+            mounted() {
+                this.updateMinistrySubmissionStatus();
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 

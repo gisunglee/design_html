@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실가스감축인지 예산제 운영시스템 - 시스템 소개</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* 공공 시스템에 맞는 신뢰성 있는 디자인 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 메인 헤더 - 공공기관 정체성 */
+        .main-header {
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+        
+        .main-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        
+        .main-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .main-description {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        /* 네비게이션 탭 */
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 16px 20px;
+            text-align: center;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+            transition: all 0.3s ease;
+            border-right: 1px solid #e5e7eb;
+        }
+        
+        .nav-tab:last-child {
+            border-right: none;
+        }
+        
+        .nav-tab.active {
+            background: #1e40af;
+            color: white;
+        }
+        
+        .nav-tab:hover:not(.active) {
+            background: #e5e7eb;
+        }
+        
+        /* 콘텐츠 섹션 */
+        .content-section {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+        
+        .section-header {
+            background: #f8f9fa;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .section-subtitle {
+            font-size: 14px;
+            color: #6b7280;
+        }
+        
+        .section-content {
+            padding: 30px;
+        }
+        
+        /* 회원 유형 테이블 */
+        .user-types-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .user-types-table th,
+        .user-types-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .user-types-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .user-types-table tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .role-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #dbeafe;
+            color: #1e40af;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* 법률 정보 박스 */
+        .legal-box {
+            background: #fffbeb;
+            border: 1px solid #fbbf24;
+            border-left: 4px solid #f59e0b;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        
+        .legal-title {
+            font-weight: bold;
+            color: #92400e;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legal-content {
+            color: #78350f;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .legal-content strong {
+            color: #92400e;
+        }
+        
+        /* 프로세스 플로우 */
+        .process-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .process-step {
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .process-step::after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #0ea5e9;
+        }
+        
+        .process-step:last-child::after {
+            display: none;
+        }
+        
+        .step-number {
+            background: #0ea5e9;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 auto 12px;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #0c4a6e;
+            margin-bottom: 8px;
+        }
+        
+        .step-description {
+            font-size: 13px;
+            color: #075985;
+            line-height: 1.4;
+        }
+        
+        /* 기능 카드 */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        
+        .feature-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+        
+        .feature-description {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        /* 대상사업 테이블 */
+        .target-projects-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .target-projects-table th,
+        .target-projects-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .target-projects-table th {
+            background: #f3f4f6;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .target-projects-table tbody tr:nth-child(even) {
+            background: #f9fafb;
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .process-flow {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-step::after {
+                content: '↓';
+                right: 50%;
+                bottom: -15px;
+                top: auto;
+                transform: translateX(50%);
+            }
+            
+            .main-title {
+                font-size: 24px;
+            }
+            
+            .main-subtitle {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="container">
+            <!-- 메인 헤더 -->
+            <div class="main-header">
+                <h1 class="main-title">온실가스감축인지 예산제 운영시스템</h1>
+                <p class="main-subtitle">Greenhouse Gas Reduction Budget Review System</p>
+                <p class="main-description">기후위기 대응을 위한 체계적인 예산 검토 및 관리 시스템</p>
+            </div>
+            
+            <!-- 네비게이션 탭 -->
+            <div class="nav-tabs">
+                <button 
+                    class="nav-tab" 
+                    :class="{ active: activeTab === 'users' }"
+                    @click="activeTab = 'users'"
+                >
+                    👥 회원 유형
+                </button>
+                <button 
+                    class="nav-tab" 
+                    :class="{ active: activeTab === 'system' }"
+                    @click="activeTab = 'system'"
+                >
+                    📋 제도 소개
+                </button>
+                <button 
+                    class="nav-tab" 
+                    :class="{ active: activeTab === 'process' }"
+                    @click="activeTab = 'process'"
+                >
+                    🔄 이용 방법
+                </button>
+                <button 
+                    class="nav-tab" 
+                    :class="{ active: activeTab === 'features' }"
+                    @click="activeTab = 'features'"
+                >
+                    ⚡ 주요 기능
+                </button>
+            </div>
+            
+            <!-- 회원 유형 섹션 -->
+            <div v-show="activeTab === 'users'" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        👥 회원 유형 및 권한
+                    </h2>
+                    <p class="section-subtitle">시스템 사용자별 역할과 권한 안내</p>
+                </div>
+                
+                <div class="section-content">
+                    <table class="user-types-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 20%;">회원 유형</th>
+                                <th style="width: 25%;">대상</th>
+                                <th style="width: 35%;">주요 역할</th>
+                                <th style="width: 20%;">본인인증방식</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td rowspan="2">
+                                    <span class="role-badge">예결심사 담당자</span>
+                                </td>
+                                <td>중앙행정기관 (기획재정담당부)</td>
+                                <td>
+                                    • 세부사업별 온실가스감축인지 예산서 작성<br>
+                                    • 부처 내부 검토 및 승인<br>
+                                    • 환경공단 제출 및 수정 대응
+                                </td>
+                                <td rowspan="2">GPKI</td>
+                            </tr>
+                            <tr>
+                                <td>환경부 (예산담당부)</td>
+                                <td>
+                                    • 환경부 소관 세부사업 작성<br>
+                                    • 타 부처 작성 지원 및 자문
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="role-badge">기획자문위원</span>
+                                </td>
+                                <td>기획자문위원</td>
+                                <td>
+                                    • 제도 개선사항 검토<br>
+                                    • 작성 지침 자문<br>
+                                    • 전문적 의견 제시
+                                </td>
+                                <td rowspan="3">휴대폰</td>
+                            </tr>
+                            <tr>
+                                <td rowspan="2">
+                                    <span class="role-badge">예결심사 검토·집행 담당자</span>
+                                </td>
+                                <td>
+                                    한국환경공단<br>
+                                    기획재정부<br>
+                                    환경부
+                                </td>
+                                <td>
+                                    • 부처별 제출 예산서 전문 검토<br>
+                                    • 검토 의견서 작성 및 피드백<br>
+                                    • 차수별 진행 상황 관리
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>시스템관리자</td>
+                                <td>
+                                    • 시스템 운영 및 관리<br>
+                                    • 사용자 권한 관리<br>
+                                    • 마감 일정 관리 및 알림 발송
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        주요 업무 흐름
+                    </h3>
+                    <p style="margin-bottom: 20px;">시스템은 아래와 같은 순서로 담당자 간 업무가 진행됩니다.</p>
+                    <div class="process-flow">
+                        <div class="process-step">
+                            <div class="step-number">1</div>
+                            <div class="step-title">예결산 담당자</div>
+                            <div class="step-description">
+                                예결산서를 작성합니다.
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">2</div>
+                            <div class="step-title">예결심사 검토·집행 담당자</div>
+                            <div class="step-description">
+                                작성된 예산서를 검토합니다.
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="step-number">3</div>
+                            <div class="step-title">기획자문위원</div>
+                            <div class="step-description">
+                                검토 완료된 예산서에 대해 자문합니다.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="legal-box">
+                        <div class="legal-title">
+                            ⚖️ 법적 근거
+                        </div>
+                        <div class="legal-content">
+                            본 시스템은 <strong>「기후위기 대응을 위한 탄소중립·녹색성장 기본법」</strong> 제27조 및 
+                            <strong>「국가재정법」</strong> 제68조의3에 근거하여 운영됩니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 제도 소개 섹션 -->
+            <div v-show="activeTab === 'system'" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        📋 제도 소개
+                    </h2>
+                    <p class="section-subtitle">시스템의 기반이 되는 제도 및 정책 소개</p>
+                </div>
+                
+                <div class="section-content">
+                    <p>
+                        본 시스템은 「기후위기 대응을 위한 탄소중립·녹색성장 기본법」 제27조 및 「국가재정법」 제68조의3에 근거하여 운영됩니다. 
+                        이 제도는 국가재정법에 따라 국가재정자원 관리 및 효율적 활용을 위한 예산 검토 및 관리 체계를 구축하고, 
+                        탄소중립 및 녹색성장 정책의 실효성을 평가하고 개선하기 위한 목적으로 설계되었습니다.
+                    </p>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        주요 제도 내용
+                    </h3>
+                    <ul>
+                        <li>
+                            예산 검토 범위: 국가재정법 제68조의3에 따라 예산 검토 범위를 정의합니다.
+                        </li>
+                        <li>
+                            예산 검토 절차: 예산 검토 및 승인 절차를 명확히 규정합니다.
+                        </li>
+                        <li>
+                            예산 검토 기준: 예산 검토 시 고려해야 할 기준 및 지표를 정의합니다.
+                        </li>
+                        <li>
+                            예산 검토 결과: 예산 검토 결과를 기록하고 피드백하는 방식을 규정합니다.
+                        </li>
+                    </ul>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        예산 검토 절차
+                    </h3>
+                    <p>
+                        예산 검토는 다음과 같은 절차로 진행됩니다:
+                    </p>
+                    <ol>
+                        <li>예산 검토 요청: 예산 검토가 필요한 경우 시스템을 통해 요청합니다.</li>
+                        <li>예산 검토 심사: 예산 검토 담당자가 예산서를 검토하고 의견을 제시합니다.</li>
+                        <li>예산 검토 승인: 예산 검토 결과에 따라 예산서를 승인하거나 수정을 요구합니다.</li>
+                        <li>예산 검토 완료: 예산 검토가 완료되면 결과를 기록하고 피드백합니다.</li>
+                    </ol>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        예산 검토 기준
+                    </h3>
+                    <p>
+                        예산 검토 시 다음과 같은 기준을 고려합니다:
+                    </p>
+                    <ul>
+                        <li>탄소중립 및 녹색성장 정책 준수 여부</li>
+                        <li>예산 효율성 및 효과성</li>
+                        <li>탄소 배출량 감축 목표 달성 가능성</li>
+                        <li>예산 경제성 및 경제적 효과</li>
+                    </ul>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        예산 검토 결과 피드백
+                    </h3>
+                    <p>
+                        예산 검토 결과는 시스템을 통해 예산 검토 담당자에게 피드백됩니다. 
+                        피드백은 예산 검토 결과에 대한 의견, 수정 사항, 추가 정보 등을 포함합니다.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 이용 방법 섹션 -->
+            <div v-show="activeTab === 'process'" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        🔄 이용 방법
+                    </h2>
+                    <p class="section-subtitle">시스템 사용자가 쉽게 이용할 수 있도록 안내</p>
+                </div>
+                
+                <div class="section-content">
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        시스템 접속 방법
+                    </h3>
+                    <p>
+                        본 시스템은 인터넷 브라우저를 통해 접속할 수 있습니다. 
+                        사용자는 보안 인증서를 통해 본인 인증을 완료해야 합니다.
+                    </p>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        보안 인증 절차
+                    </h3>
+                    <p>
+                        보안 인증은 다음과 같은 절차로 진행됩니다:
+                    </p>
+                    <ol>
+                        <li>사용자 등록: 보안 인증을 위해 사용자 정보를 시스템에 등록합니다.</li>
+                        <li>보안 인증서 발급: 등록된 사용자에게 보안 인증서를 발급합니다.</li>
+                        <li>보안 인증서 설치: 발급된 보안 인증서를 사용자의 디바이스에 설치합니다.</li>
+                        <li>보안 인증 완료: 보안 인증서를 통해 본인 인증을 완료합니다.</li>
+                    </ol>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        보안 인증서 유형
+                    </h3>
+                    <p>
+                        보안 인증서는 다음과 같은 유형으로 발급됩니다:
+                    </p>
+                    <ul>
+                        <li>GPKI (국가정보통신공사 보안인증서)</li>
+                        <li>휴대폰 인증</li>
+                        <li>신용카드 인증</li>
+                    </ul>
+                    
+                    <h3 style="font-size: 18px; font-weight: bold; color: #1f2937; margin: 32px 0 16px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px;">
+                        보안 인증 오류 처리
+                    </h3>
+                    <p>
+                        보안 인증 중 발생할 수 있는 오류를 대비하여 다음과 같은 처리 방안을 마련했습니다:
+                    </p>
+                    <ul>
+                        <li>인증서 만료 시 자동 갱신</li>
+                        <li>인증서 손상 시 복구 가능</li>
+                        <li>인증서 분실 시 신속한 대응</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 주요 기능 섹션 -->
+            <div v-show="activeTab === 'features'" class="content-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        ⚡ 주요 기능
+                    </h2>
+                    <p class="section-subtitle">시스템이 제공하는 주요 기능 및 특징</p>
+                </div>
+                
+                <div class="section-content">
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">💾</div>
+                            <div class="feature-title">예산서 작성 및 관리</div>
+                            <div class="feature-description">
+                                사용자는 예산서를 웹 인터페이스를 통해 쉽게 작성하고 관리할 수 있습니다.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔍</div>
+                            <div class="feature-title">예산서 검토 및 피드백</div>
+                            <div class="feature-description">
+                                예산 검토 담당자는 예산서를 검토하고 의견을 제시할 수 있습니다.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📊</div>
+                            <div class="feature-title">통계 및 분석</div>
+                            <div class="feature-description">
+                                예산 검토 결과를 통계적으로 분석하여 탄소 배출량 감축 효과를 평가합니다.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔄</div>
+                            <div class="feature-title">자동화된 프로세스</div>
+                            <div class="feature-description">
+                                예산 검토 절차를 자동화하여 효율성을 높입니다.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🛡️</div>
+                            <div class="feature-title">보안 및 신뢰성</div>
+                            <div class="feature-description">
+                                보안 인증 및 데이터 암호화를 통해 데이터의 신뢰성과 안전성을 보장합니다.
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">📱</div>
+                            <div class="feature-title">모바일 지원</div>
+                            <div class="feature-description">
+                                모바일 환경에서도 예산서 작성 및 검토가 가능합니다.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 활성 탭
+                    activeTab: 'users',
+                    
+                    // 시스템 통계
+                    systemStats: {
+                        totalProjects: 156,
+                        totalMinistries: 8,
+                        totalUsers: 47,
+                        processingTime: '5일'
+                    }
+                }
+            },
+            
+            methods: {
+                // 탭 전환 시 스크롤 상단으로 이동
+                scrollToTop() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+            },
+            
+            // 탭 변경 시 상단으로 스크롤
+            watch: {
+                activeTab() {
+                    this.scrollToTop();
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 

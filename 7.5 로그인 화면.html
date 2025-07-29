@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>온실가스감축인지 예산제 운영시스템 - 로그인</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        /* 공공기관다운 신뢰성 있는 디자인 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 25%, #3b82f6 50%, #10b981 75%, #059669 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* 정부 스타일 배경 패턴 */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,0.08) 0%, transparent 50%),
+                linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.02) 50%, transparent 70%);
+            animation: subtleFloat 30s ease-in-out infinite;
+        }
+        
+        @keyframes subtleFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(0.5deg); }
+        }
+        
+        /* 정부 스타일 상단 헤더 */
+        .gov-header {
+            background: rgba(30, 58, 138, 0.95);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 8px 20px;
+            font-size: 12px;
+            text-align: center;
+            border-bottom: 2px solid #fbbf24;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .gov-header .gov-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .gov-info span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-container {
+            max-width: 480px;
+            width: 100%;
+            position: relative;
+        }
+        
+        /* 메인 로그인 카드 */
+        .login-card {
+            background: rgba(255, 255, 255, 0.97);
+            backdrop-filter: blur(25px);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideUp 0.8s ease-out;
+            position: relative;
+        }
+        
+        /* 정부 마크 장식 */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            height: 4px;
+            background: linear-gradient(90deg, #1e40af 0%, #fbbf24 50%, #dc2626 100%);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* 헤더 */
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .system-logo {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(135deg, #1e40af 0%, #10b981 100%);
+            border-radius: 18px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            color: white;
+            box-shadow: 
+                0 8px 25px rgba(30, 64, 175, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            position: relative;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 태극 문양 장식 */
+        .system-logo::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            background: 
+                radial-gradient(circle at 30% 30%, #dc2626 40%, transparent 40%),
+                radial-gradient(circle at 70% 70%, #1e40af 40%, transparent 40%);
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .system-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e3a8a;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        
+        .system-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+        
+        .system-classification {
+            display: inline-block;
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+        
+        /* 탭 스타일 */
+        .login-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 3px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .login-tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #64748b;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .login-tab.active {
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            color: white;
+            box-shadow: 
+                0 2px 8px rgba(30, 64, 175, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .login-tab:not(.active):hover {
+            background: #f1f5f9;
+            color: #334155;
+        }
+        
+        /* 폼 컨테이너 */
+        .form-container {
+            position: relative;
+        }
+        
+        .form-content {
+            display: none;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .form-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateX(0);
+            animation: slideInForm 0.3s ease-out;
+        }
+        
+        @keyframes slideInForm {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* 폼 스타일 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #1e40af;
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+            background: white;
+        }
+        
+        .form-input::placeholder {
+            color: #9ca3af;
+        }
+        
+        /* 캡챠 관련 스타일 */
+        .captcha-group {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+        
+        .captcha-display {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #374151;
+            user-select: none;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background-image: 
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+        }
+        
+        .captcha-refresh {
+            padding: 14px;
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(30, 64, 175, 0.3);
+        }
+        
+        .captcha-refresh:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+        }
+        
+        /* 체크박스 스타일링 */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #d1d5db;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .custom-checkbox.checked {
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            border-color: #1e40af;
+            color: white;
+        }
+        
+        .checkbox-label {
+            font-size: 13px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        
+        /* 버튼 스타일 */
+        .login-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 15px rgba(30, 64, 175, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+        
+        .login-button:hover::before {
+            left: 100%;
+        }
+        
+        .login-button:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+        }
+        
+        .login-button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* GPKI 폼 스타일 */
+        .gpki-form {
+            text-align: center;
+        }
+        
+        .gpki-info {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 2px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+            color: #1e40af;
+        }
+        
+        .gpki-info h4 {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .gpki-info p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #1e3a8a;
+        }
+        
+        .gpki-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #1e40af 0%, #059669 100%);
+            border-radius: 16px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* 도움말 링크 */
+        .help-links {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+        
+        .help-links a {
+            color: #1e40af;
+            text-decoration: none;
+            font-size: 13px;
+            margin: 0 10px;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+        
+        .help-links a:hover {
+            color: #1e3a8a;
+            text-decoration: underline;
+        }
+        
+        /* 정부 스타일 푸터 */
+        .gov-footer {
+            background: rgba(30, 58, 138, 0.95);
+            backdrop-filter: blur(10px);
+            color: rgba(255, 255, 255, 0.9);
+            text-align: center;
+            padding: 16px 20px;
+            font-size: 12px;
+            border-top: 2px solid #fbbf24;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        
+        .footer-links {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .gov-footer a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .gov-footer a:hover {
+            color: #fbbf24;
+        }
+        
+        .footer-info {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 4px;
+        }
+        
+        /* 로딩 스피너 */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .gov-header {
+                padding: 6px 16px;
+                font-size: 11px;
+            }
+            
+            .gov-info {
+                gap: 12px;
+            }
+            
+            .main-content {
+                padding: 16px;
+            }
+            
+            .login-container {
+                max-width: 100%;
+            }
+            
+            .login-card {
+                padding: 24px;
+                border-radius: 12px;
+            }
+            
+            .system-logo {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+            
+            .system-title {
+                font-size: 19px;
+            }
+            
+            .captcha-group {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            
+            .gpki-icon {
+                width: 80px;
+                height: 80px;
+                font-size: 32px;
+            }
+            
+            .footer-content {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .footer-links {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 정부 스타일 상단 헤더 -->
+        <div class="gov-header">
+            <div class="gov-info">
+                <span>🏛️ 대한민국 정부</span>
+                <span>🌿 환경부 · 한국환경공단</span>
+                <span>📋 온실가스감축인지 예산제</span>
+            </div>
+        </div>
+        
+        <!-- 메인 컨텐츠 -->
+        <div class="main-content">
+            <div class="login-container">
+                <div class="login-card">
+                    <!-- 헤더 -->
+                    <div class="login-header">
+                        <div class="system-logo">🌱</div>
+                        <h1 class="system-title">온실가스감축인지 예산제</h1>
+                        <p class="system-subtitle">운영시스템</p>
+                        <div class="system-classification">정부통합시스템</div>
+                    </div>
+                    
+                    <!-- 로그인 탭 -->
+                    <div class="login-tabs">
+                        <button 
+                            class="login-tab" 
+                            :class="{ active: activeTab === 'normal' }"
+                            @click="activeTab = 'normal'"
+                        >
+                            🔑 일반 로그인
+                        </button>
+                        <button 
+                            class="login-tab" 
+                            :class="{ active: activeTab === 'gpki' }"
+                            @click="activeTab = 'gpki'"
+                        >
+                            🔐 GPKI 인증
+                        </button>
+                    </div>
+                    
+                    <!-- 폼 컨테이너 -->
+                    <div class="form-container">
+                        <!-- 일반 로그인 폼 -->
+                        <div class="form-content" :class="{ active: activeTab === 'normal' }">
+                            <form @submit.prevent="loginWithPassword">
+                                <div class="form-group">
+                                    <label class="form-label">사용자 ID</label>
+                                    <input 
+                                        type="text" 
+                                        class="form-input" 
+                                        v-model="loginForm.userId"
+                                        placeholder="사용자 ID를 입력해주세요"
+                                        required
+                                    >
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">비밀번호</label>
+                                    <input 
+                                        type="password" 
+                                        class="form-input" 
+                                        v-model="loginForm.password"
+                                        placeholder="비밀번호를 입력해주세요"
+                                        required
+                                    >
+                                </div>
+                                
+                                <!-- 캡챠 (보안문자) -->
+                                <div class="form-group">
+                                    <label class="form-label">보안문자</label>
+                                    <div class="captcha-group">
+                                        <div>
+                                            <div class="captcha-display">{{ captchaCode }}</div>
+                                            <input 
+                                                type="text" 
+                                                class="form-input" 
+                                                v-model="loginForm.captcha"
+                                                placeholder="위의 보안문자를 입력해주세요"
+                                                required
+                                                style="margin-top: 8px;"
+                                            >
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            class="captcha-refresh" 
+                                            @click="refreshCaptcha"
+                                            title="새로고침"
+                                        >
+                                            🔄
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="checkbox-group">
+                                    <div 
+                                        class="custom-checkbox" 
+                                        :class="{ checked: loginForm.rememberMe }"
+                                        @click="loginForm.rememberMe = !loginForm.rememberMe"
+                                    >
+                                        <span v-if="loginForm.rememberMe">✓</span>
+                                    </div>
+                                    <label class="checkbox-label" @click="loginForm.rememberMe = !loginForm.rememberMe">
+                                        로그인 상태 유지
+                                    </label>
+                                </div>
+                                
+                                <button 
+                                    type="submit" 
+                                    class="login-button" 
+                                    :disabled="!loginForm.userId || !loginForm.password || !loginForm.captcha"
+                                >
+                                    🔑 로그인
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- GPKI 인증 폼 -->
+                        <div class="form-content" :class="{ active: activeTab === 'gpki' }">
+                            <div class="gpki-form">
+                                <div class="gpki-icon">🔐</div>
+                                
+                                <div class="gpki-info">
+                                    <h4>🔒 GPKI 인증 로그인</h4>
+                                    <p>
+                                        • GPKI 인증서가 설치된 PC에서만 로그인 가능합니다<br>
+                                        • 인증서에서 기관 및 사용자 정보가 자동으로 인식됩니다<br>
+                                        • 행정기관 담당자를 위한 보안 강화 로그인 방식입니다<br>
+                                        • 정부통합인증시스템과 연동됩니다
+                                    </p>
+                                </div>
+                                
+                                <button 
+                                    type="button" 
+                                    class="login-button"
+                                    @click="loginWithGPKI"
+                                >
+                                    🔐 GPKI 인증 로그인
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 도움말 링크 -->
+                    <div class="help-links">
+                        <a href="#" @click.prevent="showHelp('register')">회원가입</a>
+                        <a href="#" @click.prevent="showHelp('password')">아이디/비밀번호 찾기</a>
+                        <a href="#" @click.prevent="showHelp('contact')">인증서재등록</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 정부 스타일 푸터 -->
+        <div class="gov-footer">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="#" target="_blank">개인정보처리방침</a>
+                    <a href="#" target="_blank">이용약관</a>
+                    <a href="#" target="_blank">접근성 정책</a>
+                    <a href="#" target="_blank">저작권 정책</a>
+                </div>
+            </div>
+            <div class="footer-info">
+                © 2024 Korea Environment Corporation · 환경부 · 대한민국 정부 | 
+                문의: 042-123-4567 | support@keco.or.kr
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        
+        createApp({
+            data() {
+                return {
+                    // 활성 탭
+                    activeTab: 'normal',
+                    
+                    // 로그인 폼 데이터
+                    loginForm: {
+                        userId: '',
+                        password: '',
+                        captcha: '',
+                        rememberMe: false
+                    },
+                    
+                    // 캡챠 관련
+                    captchaCode: '',
+                    captchaAnswer: ''
+                }
+            },
+            
+            mounted() {
+                // 페이지 로드 시 캡챠 생성
+                this.refreshCaptcha();
+            },
+            
+            methods: {
+                // 일반 로그인
+                async loginWithPassword() {
+                    try {
+                        // 캡챠 검증
+                        if (this.loginForm.captcha.toLowerCase() !== this.captchaAnswer.toLowerCase()) {
+                            this.showToast('보안문자가 올바르지 않습니다.', 'error');
+                            this.refreshCaptcha();
+                            this.loginForm.captcha = '';
+                            return;
+                        }
+                        
+                        this.showToast('로그인 중...');
+                        
+                        // 실제로는 로그인 API 호출
+                        await this.simulatePasswordAuth();
+                        
+                        this.showToast('로그인 성공! 메인 화면으로 이동합니다.');
+                        
+                        // 실제로는 메인 페이지로 리다이렉트
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+                        
+                    } catch (error) {
+                        this.showToast('아이디 또는 비밀번호가 올바르지 않습니다.', 'error');
+                        this.refreshCaptcha();
+                        this.loginForm.captcha = '';
+                    }
+                },
+                
+                // GPKI 로그인
+                async loginWithGPKI() {
+                    try {
+                        this.showToast('GPKI 인증서를 확인하고 있습니다...');
+                        
+                        // 실제로는 GPKI 인증 모듈 호출
+                        await this.simulateGPKIAuth();
+                        
+                        this.showToast('GPKI 인증 성공! 메인 화면으로 이동합니다.');
+                        
+                        // 실제로는 메인 페이지로 리다이렉트
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+                        
+                    } catch (error) {
+                        this.showToast('GPKI 인증에 실패했습니다. 인증서를 확인해주세요.', 'error');
+                    }
+                },
+                
+                // 캡챠 생성
+                refreshCaptcha() {
+                    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 혼동하기 쉬운 문자 제외
+                    let result = '';
+                    for (let i = 0; i < 6; i++) {
+                        result += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    this.captchaCode = result;
+                    this.captchaAnswer = result;
+                },
+                
+                // 도움말 표시
+                showHelp(type) {
+                    const helpMessages = {
+                        register: '회원가입은 시스템 관리자에게 문의해주세요.\n문의: support@keco.or.kr',
+                        password: '비밀번호 찾기는 각 기관 담당자에게 문의해주세요.',
+                        contact: '인증서 재등록 화면으로 이동합니다.'
+                    };
+                    
+                    if (type === 'contact') {
+                        // 인증서 재등록 페이지로 이동
+                        window.location.href = '7.3 인증서 재등록.html';
+                    } else {
+                        alert(helpMessages[type] || '준비 중인 기능입니다.');
+                    }
+                },
+                
+                // 시뮬레이션 함수들
+                async simulatePasswordAuth() {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            // 테스트 계정: admin/password 또는 user/123456
+                            const { userId, password } = this.loginForm;
+                            if ((userId === 'admin' && password === 'password') || 
+                                (userId === 'user' && password === '123456')) {
+                                resolve();
+                            } else {
+                                reject(new Error('로그인 실패'));
+                            }
+                        }, 1000);
+                    });
+                },
+                
+                async simulateGPKIAuth() {
+                    return new Promise((resolve, reject) => {
+                        setTimeout(() => {
+                            // 90% 확률로 성공
+                            if (Math.random() > 0.1) {
+                                resolve();
+                            } else {
+                                reject(new Error('GPKI 인증 실패'));
+                            }
+                        }, 2000);
+                    });
+                },
+                
+                // 토스트 알림
+                showToast(message, type = 'info') {
+                    // 실제로는 별도 토스트 컴포넌트 사용
+                    alert(message);
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 
